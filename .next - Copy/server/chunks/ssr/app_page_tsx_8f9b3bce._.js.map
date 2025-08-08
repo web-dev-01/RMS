@@ -1,0 +1,6 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 5, "column": 0}, "map": {"version":3,"sources":["file:///C:/Users/offic/OneDrive/Documents/MAIN%20PROJECTS%20as%20an%20intern/RUNNING/GUMS/your-portal/app/page.tsx"],"sourcesContent":["'use client';\n\nimport LandingPage from '@/components/LandingPage';\n\nexport default function Home() {\n  return <LandingPage />;\n}\n"],"names":[],"mappings":";;;;;;;;;AAAA;;;AAIe,SAAS;IACtB,qBAAO,8OAAC;;;;;AACV","debugId":null}}]
+}

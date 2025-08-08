@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 6, "column": 0}, "map": {"version":3,"sources":[],"names":[],"mappings":"","debugId":null}},
+    {"offset": {"line": 66, "column": 0}, "map": {"version":3,"sources":["file:///C:/Users/offic/OneDrive/Documents/PROJECTS%20LIVE%20NOW/your-portal/app/api/rms/asset-types/route.ts"],"sourcesContent":["import { NextResponse } from 'next/server';\r\n\r\nexport async function GET() {\r\n  const types = ['Server', 'Router', 'Switch'];\r\n  return NextResponse.json({ success: true, types });\r\n}\r\n"],"names":[],"mappings":";;;AAAA;;AAEO,eAAe;IACpB,MAAM,QAAQ;QAAC;QAAU;QAAU;KAAS;IAC5C,OAAO,gIAAA,CAAA,eAAY,CAAC,IAAI,CAAC;QAAE,SAAS;QAAM;IAAM;AAClD","debugId":null}}]
+}

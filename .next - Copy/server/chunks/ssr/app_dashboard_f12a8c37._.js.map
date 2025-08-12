@@ -1,6 +1,0 @@
-{
-  "version": 3,
-  "sources": [],
-  "sections": [
-    {"offset": {"line": 37, "column": 0}, "map": {"version":3,"sources":["file:///C:/Users/offic/OneDrive/Documents/PROJECTS%20LIVE%20NOW/your-portal/app/dashboard/page.tsx"],"sourcesContent":["'use client';\r\n\r\nimport React from 'react';\r\nimport AppToolbar from './AppToolbar';\r\nimport Sidebar from './Sidebar';\r\nimport AppFooter from './AppFooter';\r\nimport Template from './Template';\r\n\r\nexport default function DashboardPage() {\r\n  return (\r\n    <Template>\r\n      <Sidebar />\r\n      <main style={{ flexGrow: 1, padding: '20px', display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>\r\n        <AppToolbar />\r\n        <div style={{ flex: 1 }}>\r\n          <h1>Welcome to Dashboard</h1>\r\n        </div>\r\n        <AppFooter />\r\n      </main>\r\n    </Template>\r\n  );\r\n}\r\n"],"names":[],"mappings":";;;;AAGA;AACA;AACA;AACA;AANA;;;;;;AAQe,SAAS;IACtB,qBACE,8OAAC,4HAAA,CAAA,UAAQ;;0BACP,8OAAC,2HAAA,CAAA,UAAO;;;;;0BACR,8OAAC;gBAAK,OAAO;oBAAE,UAAU;oBAAG,SAAS;oBAAQ,SAAS;oBAAQ,eAAe;oBAAU,WAAW;gBAAQ;;kCACxG,8OAAC,8HAAA,CAAA,UAAU;;;;;kCACX,8OAAC;wBAAI,OAAO;4BAAE,MAAM;wBAAE;kCACpB,cAAA,8OAAC;sCAAG;;;;;;;;;;;kCAEN,8OAAC,6HAAA,CAAA,UAAS;;;;;;;;;;;;;;;;;AAIlB","debugId":null}}]
-}

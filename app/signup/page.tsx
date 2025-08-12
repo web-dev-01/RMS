@@ -13,6 +13,8 @@ import {
   CircularProgress,
   Paper,
   Link,
+  Snackbar,
+  Alert,
 } from '@mui/material';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
 import { useState } from 'react';
@@ -31,8 +33,11 @@ export default function RegisterPage() {
 
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState('');
-  const [success, setSuccess] = useState(false);
+
+  // Snackbar state
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMsg, setSnackbarMsg] = useState('');
+  const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error'>('success');
 
   const handleChange = (e: any) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -41,28 +46,35 @@ export default function RegisterPage() {
   const handleSubmit = async (e: any) => {
     e.preventDefault();
     setLoading(true);
-    setMessage('');
-    setSuccess(false);
 
     if (formData.password !== formData.confirmPassword) {
-      setMessage("Passwords do not match");
+      setSnackbarMsg("Passwords do not match");
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
       setLoading(false);
       return;
     }
 
     try {
       const response = await axios.post('/api/auth/register', formData);
-      setMessage(response.data.message);
-      setSuccess(true);
 
-      // Redirect after 2.5s to verify-email page
+      // Show success snackbar
+      setSnackbarMsg(response.data.message || 'Registration successful');
+      setSnackbarSeverity('success');
+      setSnackbarOpen(true);
+
+      // Save email for verification page
+      localStorage.setItem('email', formData.email);
+
+      // Redirect after 2.5 seconds
       setTimeout(() => {
+        setSnackbarOpen(false);
         router.push('/verify-email');
       }, 2500);
     } catch (error: any) {
-      const msg = error?.response?.data?.message || 'Something went wrong';
-      setMessage(msg);
-      setSuccess(false);
+      setSnackbarMsg(error?.response?.data?.message || 'Something went wrong');
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
     } finally {
       setLoading(false);
     }
@@ -128,17 +140,6 @@ export default function RegisterPage() {
               required
             />
 
-            {message && (
-              <Typography
-                color={success ? 'green' : 'error'}
-                mt={1}
-                fontWeight={500}
-                fontSize={14}
-              >
-                {message}
-              </Typography>
-            )}
-
             <Button
               type="submit"
               fullWidth
@@ -160,6 +161,22 @@ export default function RegisterPage() {
           </Grid>
         </Box>
       </Paper>
+
+      {/* Snackbar for messages */}
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={4000}
+        onClose={() => setSnackbarOpen(false)}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Alert
+          onClose={() => setSnackbarOpen(false)}
+          severity={snackbarSeverity}
+          sx={{ width: '100%' }}
+        >
+          {snackbarMsg}
+        </Alert>
+      </Snackbar>
     </Container>
   );
 }

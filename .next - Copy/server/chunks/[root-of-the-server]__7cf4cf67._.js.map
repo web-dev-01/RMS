@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": [],
-  "sections": [
-    {"offset": {"line": 6, "column": 0}, "map": {"version":3,"sources":[],"names":[],"mappings":"","debugId":null}},
-    {"offset": {"line": 66, "column": 0}, "map": {"version":3,"sources":["file:///C:/Users/offic/OneDrive/Documents/PROJECTS%20LIVE%20NOW/your-portal/app/api/admin/users/route.ts"],"sourcesContent":["// admin/users API handler\r\nimport { NextResponse } from 'next/server';\r\n\r\nexport async function GET() {\r\n  const data = [{ id: 1, name: 'Admin User' }];\r\n  return NextResponse.json({ success: true, users: data });\r\n}\r\n"],"names":[],"mappings":"AAAA,0BAA0B;;;;AAC1B;;AAEO,eAAe;IACpB,MAAM,OAAO;QAAC;YAAE,IAAI;YAAG,MAAM;QAAa;KAAE;IAC5C,OAAO,gIAAA,CAAA,eAAY,CAAC,IAAI,CAAC;QAAE,SAAS;QAAM,OAAO;IAAK;AACxD","debugId":null}}]
-}

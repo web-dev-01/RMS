@@ -2,7 +2,7 @@ import '../styles/globals.css';
 import { Inter } from 'next/font/google';
 import { ThemeWrapper } from '@/components/ThemeProvider';
 import { UserProvider } from '@/contexts/UserContext';
-import Navbar from '@/components/Navbar'; // ← Your landing page navbar
+ // ← Your landing page navbar
 
 const inter = Inter({ subsets: ['latin'], display: 'swap' });
 
@@ -17,7 +17,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className={inter.className}>
         <ThemeWrapper>
           <UserProvider>
-            <Navbar />
+            
             {children}
           </UserProvider>
         </ThemeWrapper>

@@ -27,6 +27,9 @@ import {
 } from 'lucide-react';
 import Image from 'next/image';
 
+// Import Google Font (Professional Railway Style)
+import '@fontsource-variable/roboto-slab'; // Serif, formal & readable
+
 const StyledAppBar = styled(AppBar)({
   backgroundColor: '#1a2e2e',
   boxShadow: '0 4px 10px rgba(0,0,0,0.3)',
@@ -42,12 +45,15 @@ const LogoText = styled('div')({
   fontSize: '1.3rem',
   color: '#00ED64',
   cursor: 'pointer',
+  fontFamily: '"Roboto Slab Variable", serif',
+  letterSpacing: '0.5px',
 });
 
 const NavLink = styled(Button)({
   color: '#a0a0a0',
   textTransform: 'none',
   fontWeight: 500,
+  fontFamily: '"Roboto Slab Variable", serif',
   '&:hover': {
     color: '#ffffff',
   },
@@ -58,6 +64,7 @@ const LoginButton = styled(Button)({
   color: '#1a2e2e',
   textTransform: 'none',
   fontWeight: 600,
+  fontFamily: '"Roboto Slab Variable", serif',
   '&:hover': {
     backgroundColor: '#00ff80',
   },
@@ -69,6 +76,7 @@ const drawerStyle = {
   height: '100%',
   color: '#ffffff',
   padding: '1rem',
+  fontFamily: '"Roboto Slab Variable", serif',
 };
 
 const StyledDialog = styled(Dialog)({
@@ -77,6 +85,7 @@ const StyledDialog = styled(Dialog)({
     padding: '2rem',
     borderRadius: '10px',
     color: '#ffffff',
+    fontFamily: '"Roboto Slab Variable", serif',
   },
 });
 
@@ -85,6 +94,7 @@ const StyledTextField = styled(TextField)({
     backgroundColor: '#2a3e3e',
     color: '#ffffff',
     borderRadius: '8px',
+    fontFamily: '"Roboto Slab Variable", serif',
   },
   '& .MuiInputLabel-root': {
     color: '#a0a0a0',
@@ -130,7 +140,7 @@ const Navbar: React.FC<NavbarProps> = ({ footerRef }) => {
           {/* Left: Logo */}
           <LogoText>
             <Image src="/logo.png" alt="logo" width={32} height={32} />
-            RMS Server Tracking
+            IP-IPIS REMOTE MONITORING SYSTEM
           </LogoText>
 
           {/* Center: Desktop Links */}
@@ -178,7 +188,7 @@ const Navbar: React.FC<NavbarProps> = ({ footerRef }) => {
         </Box>
       </Drawer>
 
-      {/* Login Dialog (Optional - Not used yet) */}
+      {/* Login Dialog */}
       <StyledDialog open={loginOpen} onClose={() => setLoginOpen(false)} fullWidth maxWidth="xs">
         <DialogTitle sx={{ textAlign: 'center', color: '#00ED64', fontWeight: 600 }}>
           User Login

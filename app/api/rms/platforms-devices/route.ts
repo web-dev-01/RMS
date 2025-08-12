@@ -2,15 +2,14 @@ import { NextRequest, NextResponse } from 'next/server';
 import mongoose from 'mongoose';
 import dbConnect from '@/lib/dbConnect';
 import { PlatformDevice } from '@/models/platformDeviceModel';
+import { Station } from '@/models/station';  // Your station model
 
-// Simple API key validation
 const validateApiKey = (req: NextRequest) => {
   const apiKey = req.headers.get('x-api-key');
   console.log('Received API key:', apiKey);
   return apiKey === process.env.API_KEY;
 };
 
-// Validate platforms array
 const isValidPlatformsArray = (p: any) => Array.isArray(p) && p.every(pl => pl && pl.PlatformNumber);
 
 // GET: Retrieve platform device data
@@ -44,7 +43,7 @@ export const GET = async (req: NextRequest) => {
   }
 };
 
-// POST: Create or append to a PlatformDevice
+// POST: Create or append to a PlatformDevice with station code validation
 export const POST = async (req: NextRequest) => {
   try {
     if (!validateApiKey(req)) {
@@ -60,6 +59,15 @@ export const POST = async (req: NextRequest) => {
       return NextResponse.json(
         { success: false, message: 'Invalid payload: stationCode, stationName, and platforms (non-empty array) are required' },
         { status: 400 }
+      );
+    }
+
+    // Validate stationCode in Station collection
+    const stationExists = await Station.findOne({ StationCode: stationCode.toUpperCase() });
+    if (!stationExists) {
+      return NextResponse.json(
+        { success: false, message: 'Station code not found. Cannot create new record.' },
+        { status: 404 }
       );
     }
 
@@ -80,7 +88,7 @@ export const POST = async (req: NextRequest) => {
           const newDevices = newPlatform.Devices || [];
           existingPd.platforms[platformIndex] = {
             ...newPlatform,
-            Devices: [...existingDevices, ...newDevices]
+            Devices: [...existingDevices, ...newDevices],
           };
         }
       });
@@ -95,7 +103,7 @@ export const POST = async (req: NextRequest) => {
       const platformDeviceData = {
         stationCode: stationCode.toUpperCase(),
         stationName,
-        platforms
+        platforms,
       };
       const newPd = await PlatformDevice.create(platformDeviceData);
       console.log('Created PlatformDevice:', JSON.stringify(newPd, null, 2));

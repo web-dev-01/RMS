@@ -1,176 +1,102 @@
-'use client';
+"use client";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import Image from "next/image";
 
-import React, { useState } from 'react';
-import {
-  Box,
-  Button,
-  TextField,
-  Typography,
-  Paper,
-  Grid,
-  CircularProgress,
-  Snackbar,
-  Alert,
-  IconButton,
-  InputAdornment,
-  Link,
-} from '@mui/material';
-import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
-import EmailOutlinedIcon from '@mui/icons-material/EmailOutlined';
-import Image from 'next/image';
-import { useRouter } from 'next/navigation';
-import axios from 'axios';
-
-const ForgotPasswordPage = () => {
-  const router = useRouter();
-  const [email, setEmail] = useState('');
+export default function ForgotPasswordPage() {
+  const [email, setEmail] = useState("");
+  const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
-  const [snackbar, setSnackbar] = useState({
-    open: false,
-    message: '',
-    severity: 'success',
-  });
+  const router = useRouter();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!email) {
-      setSnackbar({ open: true, message: 'Email is required', severity: 'error' });
-      return;
-    }
-
     setLoading(true);
 
     try {
-      const response = await axios.post('/api/forgot-password', { email });
-      setSnackbar({
-        open: true,
-        message: response?.data?.message || 'Password reset email sent!',
-        severity: 'success',
+      const res = await fetch("/api/auth/forgot-password", {
+        method: "POST",
+        body: JSON.stringify({ email }),
+        headers: { "Content-Type": "application/json" },
       });
-      setEmail('');
-    } catch (error: any) {
-      setSnackbar({
-        open: true,
-        message: error?.response?.data?.message || 'Something went wrong',
-        severity: 'error',
-      });
+
+      const data = await res.json();
+      setMessage(data.message);
+
+      if (data.success) {
+        localStorage.setItem("resetEmail", email);
+        router.push("/verify-reset-code");
+      }
+    } catch (error) {
+      setMessage("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleCloseSnackbar = () => {
-    setSnackbar({ ...snackbar, open: false });
-  };
-
   return (
-    <Box
-      sx={{
-        minHeight: '100vh',
-        backgroundColor: '#0A0F19',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        p: 2,
-      }}
-    >
-      <Paper
-        elevation={4}
-        sx={{
-          width: '100%',
-          maxWidth: 420,
-          p: 4,
-          borderRadius: '20px',
-          background: '#ffffff0a',
-          backdropFilter: 'blur(12px)',
-          color: '#fff',
-        }}
-      >
-        <Box sx={{ textAlign: 'center', mb: 4 }}>
-          <Image src="/logo.png" alt="Logo" width={60} height={60} />
-          <Typography variant="h5" fontWeight="bold" mt={2}>
-            Forgot Password
-          </Typography>
-          <Typography variant="body2" color="#cfcfcf" mt={1}>
-            Enter your email to reset your password
-          </Typography>
-        </Box>
+    <div style={{
+      maxWidth: 400,
+      margin: "50px auto",
+      padding: 20,
+      border: "1px solid #ddd",
+      borderRadius: 10,
+      boxShadow: "0 4px 10px rgba(0,0,0,0.1)",
+      background: "#0A0F19",
+      textAlign: "center"
+    }}>
+      <Image 
+        src="/logo.png" 
+        alt="Logo" 
+        width={100} 
+        height={100} 
+        style={{ marginBottom: 20 }} 
+      />
+      <h1 style={{ marginBottom: 20 }}>Forgot Password</h1>
 
-        <form onSubmit={handleSubmit}>
-          <TextField
-            fullWidth
-            placeholder="Enter your email"
-            variant="outlined"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <EmailOutlinedIcon sx={{ color: '#00ED64' }} />
-                </InputAdornment>
-              ),
-            }}
-            sx={{
-              mb: 3,
-              '& .MuiOutlinedInput-root': {
-                color: '#fff',
-                '& fieldset': { borderColor: '#00ED64' },
-                '&:hover fieldset': { borderColor: '#00ED64' },
-                '&.Mui-focused fieldset': { borderColor: '#00ED64' },
-              },
-              '& input::placeholder': {
-                color: '#cccccc',
-              },
-            }}
-          />
+      <form onSubmit={handleSubmit}>
+        <input
+          value={email}
+          type="email"
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="Enter your email"
+          required
+          style={{
+            display: "block",
+            width: "100%",
+            marginBottom: 15,
+            padding: 10,
+            borderRadius: 6,
+            border: "1px solid #ccc",
+            fontSize: 14
+          }}
+        />
+        <button
+          type="submit"
+          disabled={loading}
+          style={{
+            width: "100%",
+            padding: 10,
+            background: "#0070f3",
+            color: "#fff",
+            border: "none",
+            borderRadius: 6,
+            fontSize: 16,
+            cursor: "pointer"
+          }}
+        >
+          {loading ? "Sending..." : "Send Reset Code"}
+        </button>
+      </form>
 
-          <Button
-            type="submit"
-            fullWidth
-            variant="contained"
-            disabled={loading}
-            sx={{
-              mt: 1,
-              mb: 2,
-              backgroundColor: '#00ED64',
-              color: '#0A0F19',
-              fontWeight: 'bold',
-              borderRadius: '10px',
-              '&:hover': {
-                backgroundColor: '#00c755',
-              },
-            }}
-          >
-            {loading ? <CircularProgress size={24} color="inherit" /> : 'Send Reset Link'}
-          </Button>
-        </form>
-
-        <Grid container justifyContent="space-between" alignItems="center" mt={3}>
-          <Grid item>
-            <Link
-              onClick={() => router.push('/login')}
-              underline="hover"
-              sx={{ color: '#00ED64', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
-            >
-              <ArrowBackIosNewIcon fontSize="small" sx={{ mr: 0.5 }} />
-              Back to Login
-            </Link>
-          </Grid>
-        </Grid>
-      </Paper>
-
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={4000}
-        onClose={handleCloseSnackbar}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      >
-        <Alert severity={snackbar.severity as any} onClose={handleCloseSnackbar}>
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
-    </Box>
+      {message && (
+        <p style={{
+          marginTop: 15,
+          color: message.toLowerCase().includes("success") ? "green" : "red"
+        }}>
+          {message}
+        </p>
+      )}
+    </div>
   );
-};
-
-export default ForgotPasswordPage;
+}

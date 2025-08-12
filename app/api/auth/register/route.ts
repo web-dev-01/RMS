@@ -3,8 +3,6 @@ import User from '@/models/User';
 import { NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import { sendVerificationEmail } from '@/utils/sendEmail';
-import { generateToken } from '@/utils/generateToken';
-import crypto from 'crypto';
 
 export async function POST(req: Request) {
   try {
@@ -36,7 +34,7 @@ export async function POST(req: Request) {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const verificationCode = crypto.randomBytes(20).toString('hex');
+    const verificationCode = Math.floor(1000 + Math.random() * 9000).toString();
 
     const newUser = new User({
       fullName,
@@ -49,13 +47,12 @@ export async function POST(req: Request) {
 
     await newUser.save();
 
-    const token = generateToken(email);
-    await sendVerificationEmail(email, token);
+    await sendVerificationEmail(email, verificationCode);
 
     return NextResponse.json(
       {
         success: true,
-        message: 'Registration successful. Please verify your email.',
+        message: 'Registration successful. Please verify your email with the code sent.',
         redirectTo: '/verify-email',
       },
       { status: 201 }

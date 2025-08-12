@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   Button,
@@ -12,6 +12,7 @@ import {
   IconButton,
   CircularProgress,
   Link,
+  alpha,
 } from '@mui/material';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
 import Image from 'next/image';
@@ -21,47 +22,17 @@ import { usePortalTheme } from '@/components/ThemeProvider';
 
 export default function LoginPage() {
   const router = useRouter();
-  const theme = usePortalTheme?.();
+  const theme = usePortalTheme();
   const primaryColor = theme?.primaryColor || '#00C291';
 
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
-  const [checkingToken, setCheckingToken] = useState(true);
-
-  useEffect(() => {
-    const checkToken = async () => {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        setCheckingToken(false);
-        return;
-      }
-
-      try {
-        const res = await axios.get('/api/auth/verify-token', {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-
-        const user = res.data?.user;
-        if (user?.isProfileComplete) {
-          router.push('/dashboard');
-        } else {
-          router.push('/auth/profile-completion');
-        }
-      } catch (err) {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-      } finally {
-        setCheckingToken(false);
-      }
-    };
-
-    checkToken();
-  }, [router]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+    if (errorMsg) setErrorMsg('');
   };
 
   const handleLogin = async () => {
@@ -79,16 +50,14 @@ export default function LoginPage() {
       const res = await axios.post('/api/auth/login', formData);
       const { token, user } = res.data;
 
-      localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(user));
-
-      // Redirect conditionally
-      if (user?.isProfileComplete) {
-        router.push('/dashboard');
-      } else {
-        router.push('/profile-completion');
-      }
-
+      // Save token & user ONLY in React state (or you can keep it in context or redux)
+      // Here, we will just keep in state, and redirect
+      
+      // For demonstration, you can do:
+      // window.sessionToken = token; // or keep in React Context if you want
+      
+      // Redirect to profile completion or dashboard
+      router.push('/profile-completion');
     } catch (err: any) {
       const msg =
         err?.response?.data?.message || 'Invalid credentials. Please try again.';
@@ -98,19 +67,6 @@ export default function LoginPage() {
     }
   };
 
-  if (checkingToken) {
-    return (
-      <Grid
-        container
-        justifyContent="center"
-        alignItems="center"
-        sx={{ minHeight: '100vh', backgroundColor: '#0A0F19' }}
-      >
-        <CircularProgress sx={{ color: primaryColor }} />
-      </Grid>
-    );
-  }
-
   return (
     <Grid
       container
@@ -119,7 +75,10 @@ export default function LoginPage() {
       sx={{
         minHeight: '100vh',
         backgroundColor: '#0A0F19',
-        backgroundImage: `radial-gradient(circle at top left, ${primaryColor}11, transparent 60%)`,
+        backgroundImage: `radial-gradient(circle at top left, ${alpha(
+          primaryColor,
+          0.07
+        )}, transparent 60%)`,
         px: 2,
       }}
     >
@@ -147,12 +106,7 @@ export default function LoginPage() {
             Welcome Back
           </Typography>
 
-          <Typography
-            variant="body2"
-            textAlign="center"
-            color="text.secondary"
-            mb={3}
-          >
+          <Typography variant="body2" textAlign="center" color="text.secondary" mb={3}>
             Enter your login credentials below
           </Typography>
 
@@ -171,6 +125,8 @@ export default function LoginPage() {
               onChange={handleChange}
               margin="normal"
               type="email"
+              autoComplete="email"
+              aria-label="Email Address"
             />
 
             <TextField
@@ -182,10 +138,16 @@ export default function LoginPage() {
               value={formData.password}
               onChange={handleChange}
               margin="normal"
+              autoComplete="current-password"
+              aria-label="Password"
               InputProps={{
                 endAdornment: (
                   <InputAdornment position="end">
-                    <IconButton onClick={() => setShowPassword((prev) => !prev)} edge="end">
+                    <IconButton
+                      aria-label={showPassword ? 'Hide password' : 'Show password'}
+                      onClick={() => setShowPassword((prev) => !prev)}
+                      edge="end"
+                    >
                       {showPassword ? <VisibilityOff /> : <Visibility />}
                     </IconButton>
                   </InputAdornment>
@@ -194,13 +156,7 @@ export default function LoginPage() {
             />
 
             {errorMsg && (
-              <Typography
-                color="error"
-                fontSize={14}
-                textAlign="center"
-                mt={1}
-                mb={2}
-              >
+              <Typography color="error" fontSize={14} textAlign="center" mt={1} mb={2}>
                 {errorMsg}
               </Typography>
             )}
@@ -218,7 +174,7 @@ export default function LoginPage() {
                 borderRadius: 2,
                 backgroundColor: primaryColor,
                 '&:hover': {
-                  backgroundColor: primaryColor + 'cc',
+                  backgroundColor: alpha(primaryColor, 0.8),
                 },
               }}
             >
@@ -235,6 +191,7 @@ export default function LoginPage() {
                 color: primaryColor,
                 fontWeight: 500,
               }}
+              aria-label="Forgot password"
             >
               Forgot password?
             </Link>
@@ -247,6 +204,7 @@ export default function LoginPage() {
                 color: primaryColor,
                 fontWeight: 500,
               }}
+              aria-label="Sign up"
             >
               Don&apos;t have an account?
             </Link>

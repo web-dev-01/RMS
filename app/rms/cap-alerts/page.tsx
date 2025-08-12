@@ -2,220 +2,412 @@
 
 import React, { useEffect, useState } from 'react';
 import {
-  Box,
+  Card,
+  CardHeader,
   Typography,
-  Paper,
+  Box,
   CircularProgress,
-  Grid,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
+  Paper,
+  IconButton,
   Button,
-  Divider,
+  Stack,
   Chip,
+  Tooltip,
+  Divider,
 } from '@mui/material';
-import { DataGrid, GridColDef } from '@mui/x-data-grid';
-import axios from 'axios';
+import RefreshIcon from '@mui/icons-material/Refresh';
+import DownloadIcon from '@mui/icons-material/Download';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import { useRouter } from 'next/navigation';
+
+import Template from '@/app/dashboard/Template';
+
+interface Area {
+  areaDesc: string;
+}
+
+interface Info {
+  category: string;
+  event: string;
+  urgency: string;
+  severity: string;
+  certainty: string;
+  headline: string;
+  description: string;
+  effective: string;
+  expires: string;
+  area: Area[];
+}
 
 interface CapAlert {
   _id: string;
+  stationCode: string;
   identifier: string;
   sender: string;
   sent: string;
   status: string;
   msgType: string;
+  source: string;
   scope: string;
-  source?: string;
-  restriction?: string;
-  addresses?: string;
-  code?: string[];
-  note?: string;
-  references?: string;
-  info: CapAlertInfo[];
-  createdAt: string;
+  info: Info;
 }
 
-interface CapAlertInfo {
-  language?: string;
-  category?: string[];
-  event: string;
-  urgency: string;
-  severity: string;
-  certainty: string;
-  audience?: string;
-  eventCode?: { valueName: string; value: string }[];
-  effective?: string;
-  onset?: string;
-  expires?: string;
-  senderName?: string;
-  headline?: string;
-  description?: string;
-  instruction?: string;
-  web?: string;
-  contact?: string;
-  parameter?: { valueName: string; value: string }[];
-  area?: { areaDesc: string; polygon?: string[]; circle?: string[] }[];
-}
-
-export default function CapAlertsPage() {
+export default function CapAlerts() {
+  const stationCode = 'NDLS'; // fixed station code
   const [alerts, setAlerts] = useState<CapAlert[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedAlert, setSelectedAlert] = useState<CapAlert | null>(null);
-  const [open, setOpen] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchAlerts = async () => {
-      try {
-        const res = await axios.get('/api/rms/cap-alerts');
-        setAlerts(res.data.alerts || []);
-      } catch (error) {
-        console.error('Error fetching alerts:', error);
-      } finally {
-        setLoading(false);
+  const router = useRouter();
+
+  const fetchAlerts = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/rms/cap-alerts?stationCode=${stationCode}`, {
+        headers: { 'x-api-key': process.env.NEXT_PUBLIC_API_KEY || '' },
+      });
+      const json = await res.json();
+      if (json.success && Array.isArray(json.data)) {
+        setAlerts(json.data.slice(0, 30)); // show up to 30 alerts
+      } else {
+        setAlerts([]);
+        setError(json.message || 'No CAP alerts found');
       }
-    };
-    fetchAlerts();
-  }, []);
-
-  const handleRowClick = (params: any) => {
-    setSelectedAlert(params.row);
-    setOpen(true);
+    } catch (err) {
+      setError('Failed to fetch CAP alerts');
+      setAlerts([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const columns: GridColDef[] = [
-    { field: 'identifier', headerName: 'Identifier', flex: 1 },
-    { field: 'sender', headerName: 'Sender', flex: 1 },
-    { field: 'status', headerName: 'Status', flex: 0.6 },
-    { field: 'msgType', headerName: 'Type', flex: 0.6 },
-    { field: 'scope', headerName: 'Scope', flex: 0.6 },
-    {
-      field: 'createdAt',
-      headerName: 'Created At',
-      flex: 1,
-      valueGetter: (params) => new Date(params.value).toLocaleString(),
-    },
-  ];
+  const downloadAllAlerts = async () => {
+    try {
+      const res = await fetch(`/api/rms/cap-alerts?stationCode=${stationCode}`, {
+        headers: { 'x-api-key': process.env.NEXT_PUBLIC_API_KEY || '' },
+      });
+      const json = await res.json();
+
+      if (!json.success || !Array.isArray(json.data)) {
+        alert('No data available for download');
+        return;
+      }
+
+      const allAlerts = json.data;
+
+      // Prepare CSV headers
+      const headers = [
+        'ID',
+        'Station Code',
+        'Identifier',
+        'Sender',
+        'Sent',
+        'Status',
+        'Message Type',
+        'Source',
+        'Scope',
+        'Category',
+        'Event',
+        'Urgency',
+        'Severity',
+        'Certainty',
+        'Headline',
+        'Description',
+        'Effective',
+        'Expires',
+        'Areas',
+      ];
+
+      // Convert alert data to CSV rows
+      const rows = allAlerts.map((alert: CapAlert) => [
+        alert._id,
+        alert.stationCode,
+        alert.identifier,
+        alert.sender,
+        alert.sent,
+        alert.status,
+        alert.msgType,
+        alert.source,
+        alert.scope,
+        alert.info.category,
+        alert.info.event,
+        alert.info.urgency,
+        alert.info.severity,
+        alert.info.certainty,
+        `"${alert.info.headline.replace(/"/g, '""')}"`, // quote and escape quotes inside text
+        `"${alert.info.description.replace(/"/g, '""')}"`,
+        alert.info.effective,
+        alert.info.expires,
+        `"${alert.info.area.map((a) => a.areaDesc).join('; ').replace(/"/g, '""')}"`,
+      ]);
+
+      // Join headers and rows
+      const csvContent = [headers, ...rows].map((row) => row.join(',')).join('\n');
+
+      // Create Blob and download link
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `CAP_Alerts_${stationCode}_${new Date().toISOString()}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      alert('Failed to download CAP alerts');
+    }
+  };
+
+  useEffect(() => {
+    fetchAlerts();
+  }, [stationCode]);
+
+  const getSeverityColor = (severity: string) => {
+    switch (severity.toLowerCase()) {
+      case 'extreme':
+        return 'error';
+      case 'severe':
+        return 'warning';
+      case 'moderate':
+        return 'info';
+      case 'minor':
+        return 'success';
+      default:
+        return 'default';
+    }
+  };
+
+  const getUrgencyColor = (urgency: string) => {
+    switch (urgency.toLowerCase()) {
+      case 'immediate':
+        return 'error';
+      case 'expected':
+        return 'warning';
+      case 'future':
+        return 'info';
+      case 'past':
+        return 'default';
+      default:
+        return 'default';
+    }
+  };
 
   return (
-    <Box sx={{ p: 4, bgcolor: '#101111', minHeight: '100vh' }}>
-      <Typography variant="h4" fontWeight={600} gutterBottom>
-        CAP Alerts
-      </Typography>
-      <Typography variant="subtitle1" gutterBottom>
-        Read-only dashboard of all CAP alerts from RMS system
-      </Typography>
+    <Template>
+      <Box
+        sx={{
+          minHeight: 'calc(100vh - 80px)',
+          p: 4,
+          bgcolor: '#101111',
+          display: 'flex',
+          flexDirection: 'column',
+        }}
+      >
+        {/* Header & Actions */}
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            mb: 3,
+            flexWrap: 'wrap',
+            gap: 2,
+          }}
+        >
+          <Typography variant="h4" fontWeight={700} color="#90CAF9">
+            CAP Alerts ({stationCode})
+          </Typography>
 
-      <Paper elevation={2} sx={{ mt: 3, p: 2 }}>
-        {loading ? (
-          <Box display="flex" justifyContent="center" alignItems="center" p={5}>
-            <CircularProgress />
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            <IconButton
+              onClick={fetchAlerts}
+              disabled={loading}
+              sx={{ color: '#90CAF9' }}
+              size="large"
+              aria-label="refresh alerts"
+            >
+              <RefreshIcon fontSize="inherit" />
+            </IconButton>
+            <Button
+              variant="outlined"
+              startIcon={<DownloadIcon />}
+              sx={{
+                color: '#90CAF9',
+                borderColor: '#90CAF9',
+                '&:hover': {
+                  bgcolor: '#90CAF9',
+                  color: '#193f11',
+                  borderColor: '#90CAF9',
+                },
+              }}
+              onClick={downloadAllAlerts}
+              disabled={loading}
+            >
+              Download CSV
+            </Button>
           </Box>
-        ) : (
-          <Box height={550}>
-            <DataGrid
-              rows={alerts}
-              getRowId={(row) => row._id}
-              columns={columns}
-              pageSize={8}
-              onRowClick={handleRowClick}
-              disableRowSelectionOnClick
-            />
-          </Box>
-        )}
-      </Paper>
+        </Box>
 
-      <Dialog open={open} onClose={() => setOpen(false)} maxWidth="md" fullWidth>
-        <DialogTitle>CAP Alert Details</DialogTitle>
-        <DialogContent dividers>
-          {selectedAlert ? (
-            <>
-              <Grid container spacing={2} mb={2}>
-                <Grid item xs={6}>
-                  <Typography><strong>Identifier:</strong> {selectedAlert.identifier}</Typography>
-                  <Typography><strong>Sender:</strong> {selectedAlert.sender}</Typography>
-                  <Typography><strong>Sent:</strong> {selectedAlert.sent}</Typography>
-                  <Typography><strong>Status:</strong> {selectedAlert.status}</Typography>
-                  <Typography><strong>Scope:</strong> {selectedAlert.scope}</Typography>
-                  <Typography><strong>Source:</strong> {selectedAlert.source || '-'}</Typography>
-                </Grid>
-                <Grid item xs={6}>
-                  <Typography><strong>MsgType:</strong> {selectedAlert.msgType}</Typography>
-                  <Typography><strong>Restriction:</strong> {selectedAlert.restriction || '-'}</Typography>
-                  <Typography><strong>Addresses:</strong> {selectedAlert.addresses || '-'}</Typography>
-                  <Typography><strong>Code:</strong> {selectedAlert.code?.join(', ') || '-'}</Typography>
-                  <Typography><strong>Note:</strong> {selectedAlert.note || '-'}</Typography>
-                  <Typography><strong>References:</strong> {selectedAlert.references || '-'}</Typography>
-                </Grid>
-              </Grid>
-
-              <Divider sx={{ my: 2 }} />
-              <Typography variant="h6" gutterBottom>Information Blocks</Typography>
-
-              {selectedAlert.info?.map((info, idx) => (
-                <Paper key={idx} sx={{ my: 2, p: 2, backgroundColor: '#01070d' }}>
-                  <Grid container spacing={2}>
-                    <Grid item xs={6}>
-                      <Typography><strong>Event:</strong> {info.event}</Typography>
-                      <Typography><strong>Urgency:</strong> {info.urgency}</Typography>
-                      <Typography><strong>Severity:</strong> {info.severity}</Typography>
-                      <Typography><strong>Certainty:</strong> {info.certainty}</Typography>
-                      <Typography><strong>Audience:</strong> {info.audience || '-'}</Typography>
-                    </Grid>
-                    <Grid item xs={6}>
-                      <Typography><strong>Headline:</strong> {info.headline}</Typography>
-                      <Typography><strong>Description:</strong> {info.description}</Typography>
-                      <Typography><strong>Web:</strong> {info.web || '-'}</Typography>
-                      <Typography><strong>Contact:</strong> {info.contact || '-'}</Typography>
-                    </Grid>
-                  </Grid>
-
-                  {info.eventCode?.length > 0 && (
-                    <>
-                      <Divider sx={{ my: 1 }} />
-                      <Typography variant="subtitle2">Event Codes</Typography>
-                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
-                        {info.eventCode.map((ec, i) => (
-                          <Chip key={i} label={`${ec.valueName}: ${ec.value}`} />
-                        ))}
-                      </Box>
-                    </>
-                  )}
-
-                  {info.parameter?.length > 0 && (
-                    <>
-                      <Divider sx={{ my: 1 }} />
-                      <Typography variant="subtitle2">Parameters</Typography>
-                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
-                        {info.parameter.map((param, i) => (
-                          <Chip key={i} label={`${param.valueName}: ${param.value}`} />
-                        ))}
-                      </Box>
-                    </>
-                  )}
-
-                  {info.area?.length > 0 && (
-                    <>
-                      <Divider sx={{ my: 1 }} />
-                      <Typography variant="subtitle2">Area</Typography>
-                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, mt: 1 }}>
-                        {info.area.map((area, i) => (
-                          <Typography key={i}>• {area.areaDesc}</Typography>
-                        ))}
-                      </Box>
-                    </>
-                  )}
-                </Paper>
-              ))}
-            </>
+        {/* Alerts container */}
+        <Paper
+          sx={{
+            bgcolor: '#1e1e1e',
+            p: 2,
+            borderRadius: 3,
+            flex: 1,
+            overflowY: 'auto',
+            maxHeight: 'calc(100vh - 180px)',
+            boxShadow: '0 0 20px rgba(144,202,249,0.2)',
+          }}
+          elevation={6}
+        >
+          {loading ? (
+            <Box
+              sx={{
+                height: '100%',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+              }}
+            >
+              <CircularProgress size={36} sx={{ color: '#90CAF9' }} />
+            </Box>
+          ) : error ? (
+            <Typography
+              variant="h6"
+              color="error"
+              sx={{ textAlign: 'center', mt: 4, fontWeight: 600 }}
+            >
+              {error}
+            </Typography>
+          ) : alerts.length === 0 ? (
+            <Typography
+              variant="h6"
+              color="textSecondary"
+              sx={{ textAlign: 'center', mt: 4 }}
+            >
+              No CAP alerts available for {stationCode}
+            </Typography>
           ) : (
-            <Typography>No alert selected.</Typography>
+            <Stack spacing={3}>
+              {alerts.map((alert) => (
+                <Card
+                  key={alert._id}
+                  sx={{
+                    bgcolor: '#2A2A2A',
+                    cursor: 'default',
+                    transition: 'all 0.2s ease-in-out',
+                    '&:hover': {
+                      bgcolor: '#3A3A3A',
+                      boxShadow: '0 6px 18px rgba(0,0,0,0.6)',
+                      transform: 'translateY(-4px)',
+                    },
+                  }}
+                  elevation={4}
+                >
+                  <CardHeader
+                    title={
+                      <Tooltip title={alert.info.headline}>
+                        <Typography
+                          variant="h6"
+                          noWrap
+                          sx={{ fontWeight: '700', color: '#E0E0E0' }}
+                        >
+                          {alert.info.headline}
+                        </Typography>
+                      </Tooltip>
+                    }
+                    subheader={
+                      <Typography
+                        variant="caption"
+                        sx={{ color: '#BBB', fontWeight: 500 }}
+                      >
+                        Sent: {new Date(alert.sent).toLocaleString()}
+                      </Typography>
+                    }
+                    sx={{ pb: 0 }}
+                  />
+
+                  <Box sx={{ px: 3, pb: 3 }}>
+                    <Typography
+                      variant="body1"
+                      sx={{
+                        color: '#CCC',
+                        mb: 1,
+                        whiteSpace: 'pre-line',
+                      }}
+                    >
+                      {alert.info.description}
+                    </Typography>
+
+                    <Stack direction="row" spacing={2} flexWrap="wrap" mb={1}>
+                      <Chip
+                        label={`Category: ${alert.info.category}`}
+                        size="medium"
+                        sx={{ bgcolor: '#394867', color: '#BDD5EA', fontWeight: '600' }}
+                      />
+                      <Chip
+                        label={`Event: ${alert.info.event}`}
+                        size="medium"
+                        sx={{ bgcolor: '#394867', color: '#BDD5EA', fontWeight: '600' }}
+                      />
+                    </Stack>
+
+                    <Stack direction="row" spacing={2} flexWrap="wrap" mb={1}>
+                      <Chip
+                        label={`Urgency: ${alert.info.urgency}`}
+                        size="medium"
+                        color={getUrgencyColor(alert.info.urgency)}
+                        sx={{ fontWeight: '700' }}
+                      />
+                      <Chip
+                        label={`Severity: ${alert.info.severity}`}
+                        size="medium"
+                        color={getSeverityColor(alert.info.severity)}
+                        sx={{ fontWeight: '700' }}
+                      />
+                      <Chip
+                        label={`Certainty: ${alert.info.certainty}`}
+                        size="medium"
+                        sx={{ bgcolor: '#444', color: '#EEE', fontWeight: '700' }}
+                      />
+                    </Stack>
+
+                    <Divider sx={{ my: 2, borderColor: '#555' }} />
+
+                    <Typography
+                      variant="body2"
+                      sx={{ color: '#AAA', mb: 1 }}
+                    >
+                      <strong>Effective:</strong> {alert.info.effective} &nbsp;&nbsp;
+                      <strong>Expires:</strong> {alert.info.expires}
+                    </Typography>
+
+                    <Typography
+                      variant="body2"
+                      sx={{ color: '#AAA', mb: 2 }}
+                    >
+                      <strong>Areas Affected:</strong>{' '}
+                      {alert.info.area.length > 0
+                        ? alert.info.area.map((a) => a.areaDesc).join('; ')
+                        : 'N/A'}
+                    </Typography>
+
+                    <Typography
+                      variant="caption"
+                      sx={{ color: '#999' }}
+                    >
+                      Source: {alert.source || 'Unknown'}
+                    </Typography>
+                  </Box>
+                </Card>
+              ))}
+            </Stack>
           )}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpen(false)}>Close</Button>
-        </DialogActions>
-      </Dialog>
-    </Box>
+        </Paper>
+      </Box>
+    </Template>
   );
 }

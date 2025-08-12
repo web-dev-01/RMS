@@ -1,47 +1,51 @@
-import { NextResponse } from 'next/server';
-import bcrypt from 'bcryptjs';
-import dbConnect from '@/lib/dbConnect';
-import User from '@/models/User';
-import { generateToken } from '@/utils/generateToken';
+// app/api/auth/login/route.ts
 
-export async function POST(req: Request) {
+import { NextResponse } from 'next/server';
+import dbConnect from '@/lib/dbConnect';
+import User from '@/models/User'; // your Mongoose user model
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+
+const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret';
+
+export async function POST(request: Request) {
   try {
     await dbConnect();
-    const { email, password } = await req.json();
+
+    const body = await request.json();
+    const { email, password } = body;
 
     if (!email || !password) {
-      return NextResponse.json({ success: false, message: 'All fields are required' }, { status: 400 });
+      return NextResponse.json({ success: false, message: 'Please provide email and password' }, { status: 400 });
     }
 
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email: email.toLowerCase() }).lean();
     if (!user) {
-      return NextResponse.json({ success: false, message: 'Invalid email or password' }, { status: 400 });
+      return NextResponse.json({ success: false, message: 'Invalid credentials' }, { status: 401 });
     }
 
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      return NextResponse.json({ success: false, message: 'Invalid email or password' }, { status: 400 });
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      return NextResponse.json({ success: false, message: 'Invalid credentials' }, { status: 401 });
     }
 
-    if (!user.isVerified) {
-      return NextResponse.json({ success: false, message: 'Please verify your email first' }, { status: 400 });
-    }
+    const token = jwt.sign({ id: user._id }, JWT_SECRET, { expiresIn: '7d' });
 
-    const token = generateToken(user._id);
-
+    // Return user info with token, no cookies/local storage here
     return NextResponse.json({
       success: true,
-      message: 'Login successful',
       token,
       user: {
         id: user._id,
         email: user.email,
         fullName: user.fullName,
+        phoneNumber: user.phoneNumber,
         role: user.role,
+        isProfileComplete: Boolean(user.fullName && user.phoneNumber),
       },
     });
   } catch (error) {
-    console.error('Login Error:', error);
-    return NextResponse.json({ success: false, message: 'Something went wrong' }, { status: 500 });
+    console.error('Login error:', error);
+    return NextResponse.json({ success: false, message: 'Internal Server Error' }, { status: 500 });
   }
 }

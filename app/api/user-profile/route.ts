@@ -1,70 +1,63 @@
-import mongoose from 'mongoose';
+// app/api/user/profile/route.ts
+
 import { NextResponse } from 'next/server';
-import jwt from 'jsonwebtoken';
-import User from '../../../models/User'; // Adjust path to your User model
+import { MongoClient } from 'mongodb';
 
-// Middleware to verify JWT token from Authorization header
-const verifyToken = (req: Request) => {
-  const authHeader = req.headers.get('Authorization');
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return null;
-  }
-  const token = authHeader.replace('Bearer ', '');
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your_jwt_secret') as { email: string };
-    return decoded.email;
-  } catch (error) {
-    return null;
-  }
-};
-
-export async function GET(req: Request) {
-  try {
-    if (!mongoose.connection.readyState) {
-      await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/ipips');
-    }
-    const email = verifyToken(req);
-    if (!email) {
-      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
-    }
-    const user = await User.findOne({ email }).select('fullName phoneNumber image');
-    if (!user) {
-      return NextResponse.json({ message: 'User not found' }, { status: 404 });
-    }
-    return NextResponse.json({ user });
-  } catch (error) {
-    console.error('Error fetching profile:', error);
-    return NextResponse.json({ message: 'Server error' }, { status: 500 });
-  }
-}
+const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017';
+const client = new MongoClient(uri);
 
 export async function PUT(req: Request) {
   try {
-    if (!mongoose.connection.readyState) {
-      await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/ipips');
+    const { email, fullName, phoneNumber, image } = await req.json();
+
+    if (!email || !fullName || !phoneNumber) {
+      return NextResponse.json({ message: 'Missing required fields' }, { status: 400 });
     }
-    const email = verifyToken(req);
-    if (!email) {
-      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
-    }
-    const { fullName, phoneNumber, image } = await req.json();
-    if (!fullName || !phoneNumber) {
-      return NextResponse.json({ message: 'Full name and phone number are required' }, { status: 400 });
-    }
-    if (!/^\+?\d{10,15}$/.test(phoneNumber)) {
-      return NextResponse.json({ message: 'Invalid phone number' }, { status: 400 });
-    }
-    const updatedUser = await User.findOneAndUpdate(
+
+    await client.connect();
+    const db = client.db('railway');
+    const usersCollection = db.collection('users');
+
+    const result = await usersCollection.updateOne(
       { email },
-      { fullName, phoneNumber, image, isVerified: true },
-      { new: true, runValidators: true }
+      { $set: { fullName, phoneNumber, imageUrl: image || '' } },
+      { upsert: true }
     );
-    if (!updatedUser) {
-      return NextResponse.json({ message: 'User not found' }, { status: 404 });
-    }
-    return NextResponse.json({ message: 'Profile updated successfully', user: updatedUser });
+
+    const userProfile = { email, fullName, phoneNumber, imageUrl: image || '' };
+    return NextResponse.json(
+      { message: 'Profile saved successfully', data: userProfile },
+      { status: 200 }
+    );
   } catch (error) {
-    console.error('Error updating profile:', error);
-    return NextResponse.json({ message: 'Server error' }, { status: 500 });
+    console.error('Error saving profile:', error);
+    return NextResponse.json({ message: 'Error saving profile' }, { status: 500 });
+  } finally {
+    await client.close();
+  }
+}
+
+export async function GET(req: Request) {
+  try {
+    const url = new URL(req.url);
+    const email = url.searchParams.get('email');
+
+    if (!email) {
+      return NextResponse.json({ message: 'Email is required' }, { status: 400 });
+    }
+
+    await client.connect();
+    const db = client.db('railway');
+    const usersCollection = db.collection('users');
+
+    const user = await usersCollection.findOne({ email });
+    const userProfile = user || { email, fullName: '', phoneNumber: '', imageUrl: '' };
+
+    return NextResponse.json({ success: true, users: [userProfile] }, { status: 200 });
+  } catch (error) {
+    console.error('Error fetching profile:', error);
+    return NextResponse.json({ message: 'Error fetching profile' }, { status: 500 });
+  } finally {
+    await client.close();
   }
 }

@@ -1,15 +1,27 @@
-import { Resend } from 'resend';
+import nodemailer from 'nodemailer';
 
-const resend = new Resend(process.env.RESEND_API_KEY!);
+const transporter = nodemailer.createTransport({
+  host: process.env.SMTP_HOST,        // e.g. smtp.gmail.com
+  port: Number(process.env.SMTP_PORT) || 587,
+  secure: false,                      // true if 465, false for other ports
+  auth: {
+    user: process.env.EMAIL_USER,    // your email id
+    pass: process.env.EMAIL_PASS,    // your email app password or normal password (if less secure apps enabled)
+  },
+});
 
-export const sendVerificationEmail = async (email: string, token: string) => {
-  const confirmLink = `${process.env.DOMAIN}/verify-email?token=${token}`;
-
-  await resend.emails.send({
-    from: 'no-reply@yourdomain.com',
+export const sendVerificationEmail = async (email: string, code: string) => {
+  const mailOptions = {
+    from: `"RMS System" <${process.env.EMAIL_USER}>`,
     to: email,
-    subject: 'Verify your email',
-    html: `<p>Click the link below to verify your email:</p>
-           <a href="${confirmLink}">${confirmLink}</a>`,
-  });
+    subject: 'Your Email Verification Code',
+    html: `
+      <p>Hello,</p>
+      <p>Your email verification code is: <strong>${code}</strong></p>
+      <p>Please enter this code on the verification page to verify your email address.</p>
+      <p>If you did not request this, please ignore this email.</p>
+    `,
+  };
+
+  return transporter.sendMail(mailOptions);
 };

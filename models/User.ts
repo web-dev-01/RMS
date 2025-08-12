@@ -33,6 +33,8 @@ const UserSchema = new mongoose.Schema(
       enum: ['User', 'Admin'],
       default: 'User',
     },
+
+    // Email verification
     isVerified: {
       type: Boolean,
       default: false,
@@ -41,11 +43,36 @@ const UserSchema = new mongoose.Schema(
       type: String,
       default: '',
     },
+    verificationCodeExpires: { // ✅ Added expiry for security
+      type: Date,
+      default: null,
+    },
+
+    // Reset password
+    resetPasswordCode: {
+      type: String,
+      default: '',
+    },
+    resetPasswordExpires: {
+      type: Date,
+      default: null,
+    },
+    passwordChangedAt: {
+      type: Date,
+      default: null,
+    },
   },
   {
     timestamps: true,
   }
 );
 
-// Prevent model overwrite issue in dev
+// Optional: Update passwordChangedAt when password changes
+UserSchema.pre('save', function (next) {
+  if (this.isModified('password')) {
+    this.passwordChangedAt = Date.now();
+  }
+  next();
+});
+
 export default mongoose.models.User || mongoose.model('User', UserSchema);

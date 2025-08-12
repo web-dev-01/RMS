@@ -1,213 +1,253 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import {
-  Box,
-  Typography,
-  TextField,
-  Paper,
-  CircularProgress,
-  IconButton,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Button,
-  Chip,
-  Tooltip,
-} from '@mui/material';
-import { DataGrid, GridColDef } from '@mui/x-data-grid';
-import SearchIcon from '@mui/icons-material/Search';
-import RefreshIcon from '@mui/icons-material/Refresh';
-import VisibilityIcon from '@mui/icons-material/Visibility';
-import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
-import axios from 'axios';
+import Template from '@/app/dashboard/Template';
+import { Box, Card, Typography } from '@mui/material';
 
-type Station = {
-  _id: string;
+type StationType = {
   StationCode: string;
-  RegionalLanguage: string;
   StationNameEnglish: string;
   StationNameHindi: string;
   StationNameRegional: string;
-  Latitude?: number;
-  Longitude?: number;
-  Altitude?: number;
-  NumberOfPlatforms?: number;
-  NumberOfSplPlatforms?: number;
-  NumberOfStationEntrances?: number;
-  NumberOfPlatformBridges?: number;
-  createdAt?: string;
+  Latitude: number;
+  Longitude: number;
+  Altitude: number;
+  NumberOfPlatforms: number;
+  NumberOfSplPlatforms: number;
+  NumberOfStationEntrances: number;
+  NumberOfPlatformBridges: number;
+  RegionalLanguage: string;
 };
 
-export default function StationListPage() {
-  const [stations, setStations] = useState<Station[]>([]);
-  const [loading, setLoading] = useState<boolean>(false);
-  const [search, setSearch] = useState('');
-  const [filteredStations, setFilteredStations] = useState<Station[]>([]);
-  const [selectedStation, setSelectedStation] = useState<Station | null>(null);
-  const [openDialog, setOpenDialog] = useState(false);
+export default function StationInfo() {
+  const [stations, setStations] = useState<StationType[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => {
+    const fetchStations = async () => {
+      try {
+        const res = await fetch('/api/rms/station-info');
+        if (!res.ok) throw new Error('Failed to fetch stations');
+        const data = await res.json();
+        if (data.success) {
+          setStations(data.data);
+        } else {
+          setError('Failed to load stations data');
+        }
+      } catch (err) {
+        setError((err as Error).message || 'Something went wrong');
+      } finally {
+        setLoading(false);
+      }
+    };
     fetchStations();
   }, []);
 
-  useEffect(() => {
-    if (!Array.isArray(stations)) return;
-
-    const filtered = stations.filter(
-      (station) =>
-        station.StationNameEnglish?.toLowerCase().includes(search.toLowerCase()) ||
-        station.StationCode?.toLowerCase().includes(search.toLowerCase()) ||
-        station.RegionalLanguage?.toLowerCase().includes(search.toLowerCase())
-    );
-    setFilteredStations(filtered);
-  }, [search, stations]);
-
-  const fetchStations = async () => {
-    try {
-      setLoading(true);
-      const res = await axios.get('/api/rms/station-info');
-
-      // ✅ Fix: read from res.data.data, not res.data.stations
-      const data = res.data?.data;
-      if (Array.isArray(data)) {
-        setStations(data);
-      } else {
-        console.error('Unexpected station data format:', res.data);
-        setStations([]);
-      }
-    } catch (error) {
-      console.error('Failed to fetch stations:', error);
-      setStations([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleView = (station: Station) => {
-    setSelectedStation(station);
-    setOpenDialog(true);
-  };
-
-  const handleDialogClose = () => {
-    setSelectedStation(null);
-    setOpenDialog(false);
-  };
-
-  const columns: GridColDef[] = [
-    { field: 'StationCode', headerName: 'Code', width: 120 },
-    { field: 'StationNameEnglish', headerName: 'English Name', width: 180 },
-    { field: 'StationNameHindi', headerName: 'Hindi Name', width: 160 },
-    { field: 'StationNameRegional', headerName: 'Regional Name', width: 160 },
-    { field: 'RegionalLanguage', headerName: 'Language', width: 130 },
-    {
-      field: 'Latitude',
-      headerName: 'Lat',
-      width: 100,
-      renderCell: (params) => <Chip label={params.value ?? '-'} size="small" />,
-    },
-    {
-      field: 'Longitude',
-      headerName: 'Long',
-      width: 100,
-      renderCell: (params) => <Chip label={params.value ?? '-'} size="small" />,
-    },
-    {
-      field: 'Altitude',
-      headerName: 'Alt',
-      width: 90,
-      renderCell: (params) => <Chip label={params.value ?? '-'} size="small" />,
-    },
-    {
-      field: 'actions',
-      headerName: 'Actions',
-      width: 150,
-      renderCell: ({ row }) => (
-        <Box display="flex" gap={1}>
-          <Tooltip title="View">
-            <IconButton onClick={() => handleView(row)} color="primary">
-              <VisibilityIcon />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title="Edit">
-            <IconButton color="warning" disabled>
-              <EditIcon />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title="Delete">
-            <IconButton color="error" disabled>
-              <DeleteIcon />
-            </IconButton>
-          </Tooltip>
+  if (loading) {
+    return (
+      <Template>
+        <Box
+          sx={{
+            minHeight: '80vh',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            backgroundColor: '#121B2A',
+          }}
+        >
+          <Typography variant="h6" color="primary">
+            Loading station info...
+          </Typography>
         </Box>
-      ),
-    },
-  ];
+      </Template>
+    );
+  }
+
+  if (error) {
+    return (
+      <Template>
+        <Box
+          sx={{
+            minHeight: '80vh',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            backgroundColor: '#121B2A',
+          }}
+        >
+          <Typography variant="h6" color="error" fontWeight="bold">
+            {error}
+          </Typography>
+        </Box>
+      </Template>
+    );
+  }
 
   return (
-    <Box p={3}>
-      <Typography variant="h4" gutterBottom>
-        Station List
-      </Typography>
+    <Template>
+      <Box
+        sx={{
+          bgcolor: '#121B2A',
+          p: 0,
+          color: '#E0E0E0',
+          maxWidth: '100vw',
+        }}
+      >
+        <Typography
+          variant="h4"
+          fontWeight="400"
+          gutterBottom={false}
+          sx={{
+            color: '#6bb4d8',
+            mb: 0,
+            pt: 0,
+            textAlign: 'center',
+            borderBottom: '1px solid #444',
+            userSelect: 'none',
+          }}
+        >
+          Station Information
+        </Typography>
 
-      <Paper sx={{ p: 2, mb: 2, display: 'flex', alignItems: 'center' }}>
-        <SearchIcon sx={{ mr: 1 }} />
-        <TextField
-          variant="standard"
-          fullWidth
-          placeholder="Search by Station Name or Code or Language..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
-        <Tooltip title="Refresh">
-          <IconButton onClick={fetchStations}>
-            <RefreshIcon />
-          </IconButton>
-        </Tooltip>
-      </Paper>
+        {stations.length === 0 ? (
+          <Typography
+            variant="h6"
+            color="textSecondary"
+            textAlign="center"
+            sx={{ mt: 10 }}
+          >
+            No stations available
+          </Typography>
+        ) : (
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 1,
+              overflowY: 'auto',
+              maxHeight: '80vh',
+              pb: 1,
+              '&::-webkit-scrollbar': { width: '6px' },
+              '&::-webkit-scrollbar-thumb': {
+                backgroundColor: '#90CAF9',
+                borderRadius: '4px',
+              },
+              '&::-webkit-scrollbar-track': {
+                backgroundColor: '#0A0F19',
+              },
+            }}
+          >
+            {stations.map((station) => (
+              <Card
+                key={station.StationCode}
+                sx={{
+                  bgcolor: '#2E2E2E',
+                  borderRadius: 2,
+                  border: '1px solid #90CAF9',
+                  width: { xs: '100%', sm: '100%', md: '95%', lg: 1450 },
+                  height: 'auto',
+                  flex: '0 0 auto',
+                  display: 'flex',
+                  justifyContent: 'center',
+                  p: 1,
+                  minHeight: '18px',
+                  overflow: 'hidden',
+                }}
+              >
+                <Box
+                  sx={{
+                    display: 'flex',
+                    flexDirection: { xs: 'column', sm: 'column', md: 'row' },
+                    width: '100%',
+                    alignItems: { xs: 'flex-start', md: 'center' },
+                    gap: 1,
+                    p: 1,
+                  }}
+                >
+                  <Box
+                    sx={{
+                      flex: 1,
+                      pr: { md: 1 },
+                      borderRight: { md: '1px solid #444' },
+                      borderBottom: { xs: '1px solid #444', md: 'none' },
+                      width: '100%',
+                    }}
+                  >
+                    <Typography
+                      sx={{
+                        color: '#90CAF9',
+                        fontWeight: 700,
+                        fontSize: '1rem',
+                        whiteSpace: 'nowrap',
+                      }}
+                      title={station.StationNameEnglish}
+                    >
+                      {station.StationNameEnglish} ({station.StationCode})
+                    </Typography>
+                    <Typography
+                      sx={{
+                        color: '#C0C0C0',
+                        fontSize: '0.9rem',
+                        whiteSpace: 'nowrap',
+                      }}
+                      title={station.StationNameHindi}
+                    >
+                      HI: {station.StationNameHindi}
+                    </Typography>
+                    <Typography
+                      sx={{
+                        color: '#C0C0C0',
+                        fontSize: '0.9rem',
+                        whiteSpace: 'nowrap',
+                      }}
+                      title={station.StationNameRegional}
+                    >
+                      REG: {station.StationNameRegional}
+                    </Typography>
+                  </Box>
 
-      {loading ? (
-        <Box display="flex" justifyContent="center" mt={5}>
-          <CircularProgress />
-        </Box>
-      ) : (
-        <Paper sx={{ height: 600, width: '100%' }}>
-          <DataGrid
-            rows={filteredStations}
-            columns={columns}
-            getRowId={(row) => row._id}
-            pageSize={10}
-            rowsPerPageOptions={[10, 20, 50]}
-          />
-        </Paper>
-      )}
+                  <Box
+                    sx={{
+                      flex: 1,
+                      px: { md: 1 },
+                      borderRight: { md: '1px solid #444' },
+                      borderBottom: { xs: '1px solid #444', md: 'none' },
+                      width: '100%',
+                    }}
+                  >
+                    <Typography sx={{ color: '#A0A0A0', fontSize: '0.9rem' }}>
+                      Location: ({station.Latitude.toFixed(3)},{' '}
+                      {station.Longitude.toFixed(3)})
+                    </Typography>
+                    <Typography sx={{ color: '#A0A0A0', fontSize: '0.9rem' }}>
+                      Altitude: {station.Altitude} m
+                    </Typography>
+                    <Typography sx={{ color: '#A0A0A0', fontSize: '0.9rem' }}>
+                      Platforms: {station.NumberOfPlatforms}
+                    </Typography>
+                    <Typography sx={{ color: '#A0A0A0', fontSize: '0.9rem' }}>
+                      Special Platforms: {station.NumberOfSplPlatforms}
+                    </Typography>
+                  </Box>
 
-      <Dialog open={openDialog} onClose={handleDialogClose} fullWidth>
-        <DialogTitle>Station Details</DialogTitle>
-        <DialogContent dividers>
-          {selectedStation && (
-            <Box display="flex" flexDirection="column" gap={1}>
-              <Typography><b>Station Code:</b> {selectedStation.StationCode}</Typography>
-              <Typography><b>English Name:</b> {selectedStation.StationNameEnglish}</Typography>
-              <Typography><b>Hindi Name:</b> {selectedStation.StationNameHindi}</Typography>
-              <Typography><b>Regional Name:</b> {selectedStation.StationNameRegional}</Typography>
-              <Typography><b>Regional Language:</b> {selectedStation.RegionalLanguage}</Typography>
-              <Typography><b>Latitude:</b> {selectedStation.Latitude ?? 'N/A'}</Typography>
-              <Typography><b>Longitude:</b> {selectedStation.Longitude ?? 'N/A'}</Typography>
-              <Typography><b>Altitude:</b> {selectedStation.Altitude ?? 'N/A'}</Typography>
-              <Typography><b>Number of Platforms:</b> {selectedStation.NumberOfPlatforms ?? 'N/A'}</Typography>
-              <Typography><b>Special Platforms:</b> {selectedStation.NumberOfSplPlatforms ?? 'N/A'}</Typography>
-              <Typography><b>Station Entrances:</b> {selectedStation.NumberOfStationEntrances ?? 'N/A'}</Typography>
-              <Typography><b>Platform Bridges:</b> {selectedStation.NumberOfPlatformBridges ?? 'N/A'}</Typography>
-            </Box>
-          )}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleDialogClose}>Close</Button>
-        </DialogActions>
-      </Dialog>
-    </Box>
+                  <Box sx={{ flex: 1, pl: { md: 1 }, width: '100%' }}>
+                    <Typography sx={{ color: '#A0A0A0', fontSize: '0.9rem' }}>
+                      Entrances: {station.NumberOfStationEntrances}
+                    </Typography>
+                    <Typography sx={{ color: '#A0A0A0', fontSize: '0.9rem' }}>
+                      Bridges: {station.NumberOfPlatformBridges}
+                    </Typography>
+                    <Typography sx={{ color: '#A0A0A0', fontSize: '0.9rem' }}>
+                      Regional Lang: {station.RegionalLanguage}
+                    </Typography>
+                  </Box>
+                </Box>
+              </Card>
+            ))}
+          </Box>
+        )}
+      </Box>
+    </Template>
   );
 }

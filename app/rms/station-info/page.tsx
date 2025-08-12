@@ -9,14 +9,6 @@ type StationType = {
   StationNameEnglish: string;
   StationNameHindi: string;
   StationNameRegional: string;
-  Latitude: number;
-  Longitude: number;
-  Altitude: number;
-  NumberOfPlatforms: number;
-  NumberOfSplPlatforms: number;
-  NumberOfStationEntrances: number;
-  NumberOfPlatformBridges: number;
-  RegionalLanguage: string;
 };
 
 export default function StationInfo() {
@@ -96,12 +88,8 @@ export default function StationInfo() {
       >
         <Typography
           variant="h4"
-          fontWeight="400"
-          gutterBottom={false}
           sx={{
             color: '#6bb4d8',
-            mb: 0,
-            pt: 0,
             textAlign: 'center',
             borderBottom: '1px solid #444',
             userSelect: 'none',
@@ -138,113 +126,60 @@ export default function StationInfo() {
               },
             }}
           >
-            {stations.map((station) => (
-              <Card
-                key={station.StationCode}
-                sx={{
-                  bgcolor: '#2E2E2E',
-                  borderRadius: 2,
-                  border: '1px solid #90CAF9',
-                  width: { xs: '100%', sm: '100%', md: '95%', lg: 1450 },
-                  height: 'auto',
-                  flex: '0 0 auto',
-                  display: 'flex',
-                  justifyContent: 'center',
-                  p: 1,
-                  minHeight: '18px',
-                  overflow: 'hidden',
-                }}
-              >
-                <Box
+            {stations.map((station) => {
+              const showRegional =
+                station.StationNameRegional &&
+                station.StationNameRegional.trim() !== '' &&
+                station.StationNameRegional.trim() !==
+                  station.StationNameHindi.trim();
+
+              return (
+                <Card
+                  key={station.StationCode}
                   sx={{
-                    display: 'flex',
-                    flexDirection: { xs: 'column', sm: 'column', md: 'row' },
-                    width: '100%',
-                    alignItems: { xs: 'flex-start', md: 'center' },
-                    gap: 1,
+                    bgcolor: '#2E2E2E',
+                    borderRadius: 2,
+                    border: '1px solid #90CAF9',
                     p: 1,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 3,
                   }}
                 >
-                  <Box
+                  <Typography
                     sx={{
-                      flex: 1,
-                      pr: { md: 1 },
-                      borderRight: { md: '1px solid #444' },
-                      borderBottom: { xs: '1px solid #444', md: 'none' },
-                      width: '100%',
+                      color: '#90CAF9',
+                      fontWeight: 700,
+                      fontSize: '1rem',
                     }}
                   >
+                    {station.StationNameEnglish} ({station.StationCode})
+                  </Typography>
+
+                  <Typography
+                    sx={{
+                      color: '#C0C0C0',
+                      fontWeight: 700,
+                      fontSize: '1rem',
+                    }}
+                  >
+                    {station.StationNameHindi}
+                  </Typography>
+
+                  {showRegional && (
                     <Typography
                       sx={{
-                        color: '#90CAF9',
+                        color: '#C0C0C0',
                         fontWeight: 700,
                         fontSize: '1rem',
-                        whiteSpace: 'nowrap',
                       }}
-                      title={station.StationNameEnglish}
                     >
-                      {station.StationNameEnglish} ({station.StationCode})
+                      {station.StationNameRegional}
                     </Typography>
-                    <Typography
-                      sx={{
-                        color: '#C0C0C0',
-                        fontSize: '0.9rem',
-                        whiteSpace: 'nowrap',
-                      }}
-                      title={station.StationNameHindi}
-                    >
-                      HI: {station.StationNameHindi}
-                    </Typography>
-                    <Typography
-                      sx={{
-                        color: '#C0C0C0',
-                        fontSize: '0.9rem',
-                        whiteSpace: 'nowrap',
-                      }}
-                      title={station.StationNameRegional}
-                    >
-                      REG: {station.StationNameRegional}
-                    </Typography>
-                  </Box>
-
-                  <Box
-                    sx={{
-                      flex: 1,
-                      px: { md: 1 },
-                      borderRight: { md: '1px solid #444' },
-                      borderBottom: { xs: '1px solid #444', md: 'none' },
-                      width: '100%',
-                    }}
-                  >
-                    <Typography sx={{ color: '#A0A0A0', fontSize: '0.9rem' }}>
-                      Location: ({station.Latitude.toFixed(3)},{' '}
-                      {station.Longitude.toFixed(3)})
-                    </Typography>
-                    <Typography sx={{ color: '#A0A0A0', fontSize: '0.9rem' }}>
-                      Altitude: {station.Altitude} m
-                    </Typography>
-                    <Typography sx={{ color: '#A0A0A0', fontSize: '0.9rem' }}>
-                      Platforms: {station.NumberOfPlatforms}
-                    </Typography>
-                    <Typography sx={{ color: '#A0A0A0', fontSize: '0.9rem' }}>
-                      Special Platforms: {station.NumberOfSplPlatforms}
-                    </Typography>
-                  </Box>
-
-                  <Box sx={{ flex: 1, pl: { md: 1 }, width: '100%' }}>
-                    <Typography sx={{ color: '#A0A0A0', fontSize: '0.9rem' }}>
-                      Entrances: {station.NumberOfStationEntrances}
-                    </Typography>
-                    <Typography sx={{ color: '#A0A0A0', fontSize: '0.9rem' }}>
-                      Bridges: {station.NumberOfPlatformBridges}
-                    </Typography>
-                    <Typography sx={{ color: '#A0A0A0', fontSize: '0.9rem' }}>
-                      Regional Lang: {station.RegionalLanguage}
-                    </Typography>
-                  </Box>
-                </Box>
-              </Card>
-            ))}
+                  )}
+                </Card>
+              );
+            })}
           </Box>
         )}
       </Box>

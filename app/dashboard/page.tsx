@@ -1,36 +1,23 @@
 'use client';
+import 'leaflet/dist/leaflet.css';
 
 import React, { useEffect, useState } from 'react';
 import Template from '@/app/dashboard/Template';
-import StationInfo from '@/app/dashboard/StationInfo';
 import ActiveTrains from '@/app/dashboard/ActiveTrains';
 import PlatformsDevices from '@/app/dashboard/PlatformsDevices';
 import CAPAlerts from '@/app/dashboard/CAPAlerts';
 import EventLogs from '@/app/dashboard/EventLogs';
+import StationInfo from '@/app/dashboard/StationInfo';
 
-import {
-  Box,
-  Container,
-  Grid,
-  Typography,
-  Stack,
-  IconButton,
-} from '@mui/material';
-
-import {
-  Facebook,
-  Twitter,
-  Instagram,
-  LinkedIn,
-} from '@mui/icons-material';
+import { Box, Container, Grid, Typography, Stack, IconButton, Card } from '@mui/material';
+import { Facebook, Twitter, Instagram, LinkedIn } from '@mui/icons-material';
 
 export default function Dashboard() {
   const [trains, setTrains] = useState<any[]>([]);
   const [loadingTrains, setLoadingTrains] = useState(true);
   const [errorTrains, setErrorTrains] = useState<string | null>(null);
-  const stationCode = 'NDLS'; // fixed for now
+  const stationCode = 'NDLS';
 
-  // Color for footer text and border
   const textGreen = '#8e988e';
 
   useEffect(() => {
@@ -61,40 +48,70 @@ export default function Dashboard() {
 
   return (
     <Template>
-      {/* Station Info on top */}
-      <StationInfo />
+      {/* Station Info */}
+      <Card
+        sx={{
+          bgcolor: '#1E1E1E',
+          border: '1px solid #90CAF9',
+          borderRadius: 2,
+          p: 1,
+          mt: 1,
+        }}
+      >
+        <StationInfo />
+      </Card>
 
-      {/* Row 1: Active Trains + Platforms & Devices */}
-      <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
-        {/* Active Trains - 65% */}
-        <div style={{ flex: '6.5' }}>
-          {/* If your ActiveTrains component doesn't accept props, just use <ActiveTrains /> */}
-          <ActiveTrains
-            trains={trains}
-            loading={loadingTrains}
-            error={errorTrains}
-            stationCode={stationCode}
-          />
-        </div>
+      {/* Active Trains */}
+      <Box sx={{ mt: 2 }}>
+        <ActiveTrains
+          trains={trains}
+          loading={loadingTrains}
+          error={errorTrains}
+          stationCode={stationCode}
+        />
+      </Box>
 
-        {/* Platforms & Devices - 35% */}
-        <div style={{ flex: '3.5' }}>
-          <PlatformsDevices />
-        </div>
-      </div>
+    {/* Row 2: Platforms & Devices + Event Logs (Reduced Height, Same Width) */}
+<Box
+  sx={{
+    mt: 2,
+    display: 'flex',
+    width: '100%',
+    gap: 2,
+    height: '400px', // reduced height from 600px to 400px
+  }}
+>
+  <Card
+    sx={{
+      flexBasis: '55%',
+      height: '100%',
+      display: 'flex',
+      flexDirection: 'column',
+    }}
+  >
+    <PlatformsDevices />
+  </Card>
 
-      {/* Row 2: CAP Alerts + Event Logs */}
-      <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
-        {/* CAP Alerts - 65% */}
-        <div style={{ flex: '6.5' }}>
+  <Card
+    sx={{
+      flexBasis: '50%',
+      height: '100%',
+      display: 'flex',
+      flexDirection: 'column',
+    }}
+  >
+    <EventLogs />
+  </Card>
+</Box>
+
+
+
+      {/* Row 3: CAP Alerts */}
+      <Box sx={{ mt: 2 }}>
+        <Card>
           <CAPAlerts />
-        </div>
-
-        {/* Event Logs - 35% */}
-        <div style={{ flex: '3.5' }}>
-          <EventLogs />
-        </div>
-      </div>
+        </Card>
+      </Box>
 
       {/* Footer */}
       <Box
@@ -110,30 +127,17 @@ export default function Dashboard() {
         <Container maxWidth="lg">
           <Grid container spacing={4}>
             <Grid item xs={12} md={6}>
-              <Typography
-                variant="h6"
-                fontWeight={700}
-                gutterBottom
-                sx={{ color: textGreen }}
-              >
+              <Typography variant="h6" fontWeight={700} gutterBottom sx={{ color: textGreen }}>
                 IP-IPIS RMS
               </Typography>
-              <Typography
-                variant="body2"
-                sx={{ lineHeight: 1.6, color: textGreen }}
-              >
+              <Typography variant="body2" sx={{ lineHeight: 1.6, color: textGreen }}>
                 RMS for IP based Integrated Passenger Information System.<br />
                 A smart solution for real-time transit monitoring, efficiency, and connectivity.
               </Typography>
             </Grid>
 
             <Grid item xs={12} md={6}>
-              <Typography
-                variant="h6"
-                fontWeight={700}
-                gutterBottom
-                sx={{ color: textGreen }}
-              >
+              <Typography variant="h6" fontWeight={700} gutterBottom sx={{ color: textGreen }}>
                 Connect with Us
               </Typography>
               <Stack direction="row" spacing={2} mt={1}>
@@ -157,19 +161,10 @@ export default function Dashboard() {
           </Grid>
 
           <Box mt={{ xs: 5, md: 7 }} textAlign="center">
-            <Typography
-              variant="body2"
-              fontWeight={500}
-              sx={{ color: textGreen }}
-            >
+            <Typography variant="body2" fontWeight={500} sx={{ color: textGreen }}>
               RMS for IP based Integrated Passenger Information System
             </Typography>
-            <Typography
-              variant="body2"
-              fontWeight={600}
-              mt={1}
-              sx={{ color: textGreen }}
-            >
+            <Typography variant="body2" fontWeight={600} mt={1} sx={{ color: textGreen }}>
               © 2025 TIC Kolkata | All Rights Reserved
             </Typography>
           </Box>

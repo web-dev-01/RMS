@@ -81,16 +81,22 @@ export default function ActiveTrains() {
     <Card
       sx={{
         bgcolor: '#1E1E1E',
-        borderRadius: 2,
+        borderRadius: 0,
+        padding: 0,
+        marginTop: '2px',
         border: '1px solid #90CAF9',
         height: '350px',
         display: 'flex',
         flexDirection: 'column',
+        width: '100%',
       }}
     >
       <CardHeader
         title={
-          <Typography variant="h6" sx={{ color: '#90CAF9', textAlign: 'center' }}>
+          <Typography
+            variant="h5"
+            sx={{ color: '#90CAF9', textAlign: 'center', fontSize: '1rem' }}
+          >
             Active Trains ({stationCode})
           </Typography>
         }
@@ -108,7 +114,7 @@ export default function ActiveTrains() {
               variant="outlined"
               size="small"
               sx={{ color: '#90CAF9', borderColor: '#90CAF9' }}
-              onClick={() => router.push('/active-trains')}
+              onClick={() => router.push('/rms/active-trains')}
             >
               View All
             </Button>
@@ -122,7 +128,9 @@ export default function ActiveTrains() {
           <CircularProgress size={28} sx={{ color: '#90CAF9' }} />
         </Box>
       ) : trains.length === 0 ? (
-        <Box sx={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', color: '#888' }}>
+        <Box
+          sx={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', color: '#888' }}
+        >
           No active trains for {stationCode}
         </Box>
       ) : (
@@ -132,40 +140,55 @@ export default function ActiveTrains() {
             bgcolor: 'transparent',
             flex: 1,
             overflowY: 'auto',
-            width: '90%',
-            mx: 'auto',
+            width: '100%',
+            margin: 0,
+            padding: 0,
+            boxShadow: 'none',
             '&::-webkit-scrollbar': { width: '6px' },
             '&::-webkit-scrollbar-thumb': { backgroundColor: '#555', borderRadius: '3px' },
           }}
         >
-          <Table size="small" stickyHeader>
+          <Table
+            size="small"
+            stickyHeader
+            sx={{
+              width: '100%',
+              minWidth: '100%',
+              tableLayout: 'fixed',
+              borderCollapse: 'collapse',
+            }}
+          >
             <TableHead>
               <TableRow>
                 <TableCell sx={{ color: '#90CAF9', fontWeight: 'bold' }}>Train Number</TableCell>
                 <TableCell sx={{ color: '#90CAF9', fontWeight: 'bold' }}>Train Name</TableCell>
                 <TableCell sx={{ color: '#90CAF9', fontWeight: 'bold' }}>From</TableCell>
                 <TableCell sx={{ color: '#90CAF9', fontWeight: 'bold' }}>To</TableCell>
-                <TableCell sx={{ color: '#90CAF9', fontWeight: 'bold' }}>Scheduled Arrival</TableCell>
-                <TableCell sx={{ color: '#90CAF9', fontWeight: 'bold' }}>Scheduled Departure</TableCell>
+                <TableCell sx={{ color: '#90CAF9', fontWeight: 'bold' }}>STA</TableCell>
+                <TableCell sx={{ color: '#90CAF9', fontWeight: 'bold' }}>STD</TableCell>
+                <TableCell sx={{ color: '#90CAF9', fontWeight: 'bold' }}>ETA</TableCell>
+                <TableCell sx={{ color: '#90CAF9', fontWeight: 'bold' }}>ETD</TableCell>
                 <TableCell sx={{ color: '#90CAF9', fontWeight: 'bold' }}>Status</TableCell>
                 <TableCell sx={{ color: '#90CAF9', fontWeight: 'bold' }}>Platform No</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {trains.map((train) => (
-                <TableRow key={train._id}>
-                  <TableCell sx={{ color: '#E0E0E0' }}>{train.TrainNumber}</TableCell>
-                  <TableCell sx={{ color: '#E0E0E0' }}>{train.TrainNameEnglish}</TableCell>
-                  <TableCell sx={{ color: '#E0E0E0' }}>
+                <TableRow key={train._id} hover>
+                  <TableCell sx={{ color: '#E0E0E0', overflowWrap: 'break-word' }}>{train.TrainNumber}</TableCell>
+                  <TableCell sx={{ color: '#E0E0E0', overflowWrap: 'break-word' }}>{train.TrainNameEnglish}</TableCell>
+                  <TableCell sx={{ color: '#E0E0E0', overflowWrap: 'break-word' }}>
                     {train.SrcCode} - {train.SrcNameEnglish}
                   </TableCell>
-                  <TableCell sx={{ color: '#E0E0E0' }}>
+                  <TableCell sx={{ color: '#E0E0E0', overflowWrap: 'break-word' }}>
                     {train.DestCode} - {train.DestNameEnglish}
                   </TableCell>
-                  <TableCell sx={{ color: '#E0E0E0' }}>{train.STA}</TableCell>
-                  <TableCell sx={{ color: '#E0E0E0' }}>{train.STD}</TableCell>
-                  <TableCell sx={{ color: '#E0E0E0' }}>{train.Status}</TableCell>
-                  <TableCell sx={{ color: '#E0E0E0' }}>{train.PFNo}</TableCell>
+                  <TableCell sx={{ color: '#E0E0E0', overflowWrap: 'break-word' }}>{train.STA}</TableCell>
+                  <TableCell sx={{ color: '#E0E0E0', overflowWrap: 'break-word' }}>{train.STD}</TableCell>
+                  <TableCell sx={{ color: '#E0E0E0', overflowWrap: 'break-word' }}>{train.ETA}</TableCell>
+                  <TableCell sx={{ color: '#E0E0E0', overflowWrap: 'break-word' }}>{train.ETD}</TableCell>
+                  <TableCell sx={{ color: '#E0E0E0', overflowWrap: 'break-word' }}>{train.Status}</TableCell>
+                  <TableCell sx={{ color: '#E0E0E0', overflowWrap: 'break-word' }}>{train.PFNo || 'N/A'}</TableCell>
                 </TableRow>
               ))}
             </TableBody>

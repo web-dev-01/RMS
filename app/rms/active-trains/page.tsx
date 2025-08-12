@@ -43,7 +43,7 @@ import LunchDiningIcon from '@mui/icons-material/LunchDining';
 import SearchIcon from '@mui/icons-material/Search';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import { useRouter } from 'next/navigation';
-import Template from '@/app/dashboard/Template'; // Imported Template as per instruction
+import Template from '@/app/dashboard/Template';
 
 interface Train {
   _id: string;
@@ -78,10 +78,9 @@ export default function ActiveTrainsPage() {
   const [typeFilter, setTypeFilter] = useState('All');
   const [selectedTrain, setSelectedTrain] = useState<Train | null>(null);
   const [showCoachList, setShowCoachList] = useState(false);
-  const stationCode = 'NDLS'; // TODO: make dynamic later
+  const stationCode = 'NDLS'; 
   const router = useRouter();
 
-  // Colors palette for consistency
   const colors = {
     primary: '#00BFA6',
     secondary: '#FF6F61',
@@ -126,11 +125,9 @@ export default function ActiveTrainsPage() {
     fetchTrains();
   }, [stationCode]);
 
-  // Apply filters and search
   useEffect(() => {
     let filtered = trains;
 
-    // Search by train number, name, or route
     if (searchQuery) {
       const lowerQuery = searchQuery.toLowerCase();
       filtered = filtered.filter(
@@ -142,12 +139,10 @@ export default function ActiveTrainsPage() {
       );
     }
 
-    // Filter by status
     if (statusFilter !== 'All') {
       filtered = filtered.filter((train) => train.Status === statusFilter);
     }
 
-    // Filter by type (A or D)
     if (typeFilter !== 'All') {
       filtered = filtered.filter((train) => train.TypeAorD === typeFilter);
     }
@@ -155,24 +150,20 @@ export default function ActiveTrainsPage() {
     setFilteredTrains(filtered);
   }, [searchQuery, statusFilter, typeFilter, trains]);
 
-  // Open train details dialog
   const handleView = (train: Train) => {
     setSelectedTrain(train);
     setShowCoachList(false);
   };
 
-  // Close dialog
   const handleCloseDialog = () => {
     setSelectedTrain(null);
     setShowCoachList(false);
   };
 
-  // Toggle coach list collapse
   const toggleCoachList = () => {
     setShowCoachList((prev) => !prev);
   };
 
-  // Status chip color logic
   const getStatusColor = (status: string) => {
     const s = status.toLowerCase();
     if (s.includes('on time')) return colors.chipOnTime;
@@ -181,7 +172,7 @@ export default function ActiveTrainsPage() {
   };
 
   return (
-    <Template> {/* Wrapping in imported Template */}
+    <Template>
       <Box
         sx={{
           py: 5,
@@ -193,7 +184,6 @@ export default function ActiveTrainsPage() {
           px: { xs: 2, sm: 4 },
         }}
       >
-        {/* Header */}
         <Box
           sx={{
             display: 'flex',
@@ -239,7 +229,6 @@ export default function ActiveTrainsPage() {
           </Box>
         </Box>
 
-        {/* Search and Filters */}
         <Grid container spacing={2} sx={{ mb: 4 }}>
           <Grid item xs={12} md={4}>
             <TextField
@@ -309,27 +298,24 @@ export default function ActiveTrainsPage() {
           </Grid>
         </Grid>
 
-        {/* Loading */}
         {loading && (
           <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh' }}>
             <CircularProgress size={70} sx={{ color: colors.primary }} />
           </Box>
         )}
 
-        {/* No trains */}
         {!loading && filteredTrains.length === 0 && (
           <Typography variant="h5" sx={{ textAlign: 'center', mt: 6, color: colors.textSecondary }}>
             No active trains match your criteria.
           </Typography>
         )}
 
-        {/* Trains Table */}
         {!loading && filteredTrains.length > 0 && (
           <TableContainer
             component={Paper}
             sx={{
               bgcolor: colors.cardBg,
-              borderRadius: 2,
+              borderRadius: 0,
               border: `1px solid ${colors.primary}`,
               overflowY: 'auto',
               maxHeight: '60vh',
@@ -340,15 +326,27 @@ export default function ActiveTrainsPage() {
             <Table stickyHeader size="small">
               <TableHead>
                 <TableRow>
-                  <TableCell sx={{ color: colors.primary, fontWeight: 'bold', bgcolor: colors.darkBg }}>Train Number</TableCell>
-                  <TableCell sx={{ color: colors.primary, fontWeight: 'bold', bgcolor: colors.darkBg }}>Train Name</TableCell>
+                  <TableCell sx={{ color: colors.primary, fontWeight: 'bold', bgcolor: colors.darkBg }}>
+                    Train Number
+                  </TableCell>
+                  <TableCell sx={{ color: colors.primary, fontWeight: 'bold', bgcolor: colors.darkBg }}>
+                    Train Name
+                  </TableCell>
                   <TableCell sx={{ color: colors.primary, fontWeight: 'bold', bgcolor: colors.darkBg }}>From</TableCell>
                   <TableCell sx={{ color: colors.primary, fontWeight: 'bold', bgcolor: colors.darkBg }}>To</TableCell>
-                  <TableCell sx={{ color: colors.primary, fontWeight: 'bold', bgcolor: colors.darkBg }}>Scheduled Arrival</TableCell>
-                  <TableCell sx={{ color: colors.primary, fontWeight: 'bold', bgcolor: colors.darkBg }}>Scheduled Departure</TableCell>
+                  <TableCell sx={{ color: colors.primary, fontWeight: 'bold', bgcolor: colors.darkBg }} align="center">
+                    Scheduled Times
+                  </TableCell>
+                  <TableCell sx={{ color: colors.primary, fontWeight: 'bold', bgcolor: colors.darkBg }} align="center">
+                    Estimated Times
+                  </TableCell>
                   <TableCell sx={{ color: colors.primary, fontWeight: 'bold', bgcolor: colors.darkBg }}>Status</TableCell>
-                  <TableCell sx={{ color: colors.primary, fontWeight: 'bold', bgcolor: colors.darkBg }}>Platform No</TableCell>
-                  <TableCell sx={{ color: colors.primary, fontWeight: 'bold', bgcolor: colors.darkBg }}>Actions</TableCell>
+                  <TableCell sx={{ color: colors.primary, fontWeight: 'bold', bgcolor: colors.darkBg }}>
+                    Platform No
+                  </TableCell>
+                  <TableCell sx={{ color: colors.primary, fontWeight: 'bold', bgcolor: colors.darkBg }}>
+                    Actions
+                  </TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -368,8 +366,17 @@ export default function ActiveTrainsPage() {
                     <TableCell sx={{ color: colors.textPrimary }}>
                       {train.DestCode} - {train.DestNameEnglish}
                     </TableCell>
-                    <TableCell sx={{ color: colors.textPrimary }}>{train.STA}</TableCell>
-                    <TableCell sx={{ color: colors.textPrimary }}>{train.STD}</TableCell>
+
+                    <TableCell sx={{ color: colors.textPrimary }} align="center">
+                      <Typography sx={{ fontWeight: 'bold' }}>Arrival: {train.STA}</Typography>
+                      <Typography sx={{ fontWeight: 'bold' }}>Departure: {train.STD}</Typography>
+                    </TableCell>
+
+                    <TableCell sx={{ color: colors.textPrimary }} align="center">
+                      <Typography sx={{ fontWeight: 'bold' }}>Arrival: {train.ETA}</Typography>
+                      <Typography sx={{ fontWeight: 'bold' }}>Departure: {train.ETD}</Typography>
+                    </TableCell>
+
                     <TableCell sx={{ color: colors.textPrimary }}>
                       <Chip
                         label={train.Status}
@@ -403,7 +410,6 @@ export default function ActiveTrainsPage() {
           </TableContainer>
         )}
 
-        {/* Train Details Dialog */}
         <Dialog
           open={!!selectedTrain}
           onClose={handleCloseDialog}
@@ -447,35 +453,105 @@ export default function ActiveTrainsPage() {
 
                 <List dense disablePadding>
                   <ListItem>
-                    <ListItemIcon><TrainIcon sx={{ color: colors.primary }} /></ListItemIcon>
-                    <ListItemText primary="Train Number" secondary={selectedTrain.TrainNumber} primaryTypographyProps={{ fontWeight: 'bold' }} secondaryTypographyProps={{ color: colors.textSecondary }} />
+                    <ListItemIcon>
+                      <TrainIcon sx={{ color: colors.primary }} />
+                    </ListItemIcon>
+                    <ListItemText
+                      primary="Train Number"
+                      secondary={selectedTrain.TrainNumber}
+                      primaryTypographyProps={{ fontWeight: 'bold' }}
+                      secondaryTypographyProps={{ color: colors.textSecondary }}
+                    />
                   </ListItem>
                   <ListItem>
-                    <ListItemIcon><LunchDiningIcon sx={{ color: colors.secondary }} /></ListItemIcon>
-                    <ListItemText primary="Route (English)" secondary={`${selectedTrain.SrcNameEnglish} (${selectedTrain.SrcCode}) ➡️ ${selectedTrain.DestNameEnglish} (${selectedTrain.DestCode})`} primaryTypographyProps={{ fontWeight: 'bold' }} secondaryTypographyProps={{ color: colors.textSecondary }} />
+                    <ListItemIcon>
+                      <LunchDiningIcon sx={{ color: colors.secondary }} />
+                    </ListItemIcon>
+                    <ListItemText
+                      primary="Route (English)"
+                      secondary={`${selectedTrain.SrcNameEnglish} (${selectedTrain.SrcCode}) ➡️ ${selectedTrain.DestNameEnglish} (${selectedTrain.DestCode})`}
+                      primaryTypographyProps={{ fontWeight: 'bold' }}
+                      secondaryTypographyProps={{ color: colors.textSecondary }}
+                    />
                   </ListItem>
                   <ListItem>
-                    <ListItemIcon><TeaIcon sx={{ color: colors.secondary }} /></ListItemIcon>
-                    <ListItemText primary="Route (Hindi)" secondary={`${selectedTrain.SrcNameHindi} ➡️ ${selectedTrain.DestNameHindi}`} primaryTypographyProps={{ fontWeight: 'bold' }} secondaryTypographyProps={{ color: colors.textSecondary }} />
+                    <ListItemIcon>
+                      <TeaIcon sx={{ color: colors.secondary }} />
+                    </ListItemIcon>
+                    <ListItemText
+                      primary="Route (Hindi)"
+                      secondary={`${selectedTrain.SrcNameHindi} ➡️ ${selectedTrain.DestNameHindi}`}
+                      primaryTypographyProps={{ fontWeight: 'bold' }}
+                      secondaryTypographyProps={{ color: colors.textSecondary }}
+                    />
                   </ListItem>
                   <ListItem>
-                    <ListItemIcon><RefreshIcon sx={{ color: colors.primary }} /></ListItemIcon>
-                    <ListItemText primary="Reference" secondary={selectedTrain.Ref} primaryTypographyProps={{ fontWeight: 'bold' }} secondaryTypographyProps={{ color: colors.textSecondary }} />
+                    <ListItemIcon>
+                      <RefreshIcon sx={{ color: colors.primary }} />
+                    </ListItemIcon>
+                    <ListItemText
+                      primary="Reference"
+                      secondary={selectedTrain.Ref}
+                      primaryTypographyProps={{ fontWeight: 'bold' }}
+                      secondaryTypographyProps={{ color: colors.textSecondary }}
+                    />
                   </ListItem>
                   <ListItem>
-                    <ListItemText primary="Scheduled Time" secondary={selectedTrain.TypeAorD === 'A' ? `Arrival at ${selectedTrain.STA}` : `Departure at ${selectedTrain.STD}`} primaryTypographyProps={{ fontWeight: 'bold' }} secondaryTypographyProps={{ color: colors.textSecondary }} />
+                    <ListItemText
+                      primary="Scheduled Time"
+                      secondary={
+                        selectedTrain.TypeAorD === 'A'
+                          ? `Arrival at ${selectedTrain.STA}`
+                          : `Departure at ${selectedTrain.STD}`
+                      }
+                      primaryTypographyProps={{ fontWeight: 'bold' }}
+                      secondaryTypographyProps={{ color: colors.textSecondary }}
+                    />
                   </ListItem>
                   <ListItem>
-                    <ListItemText primary="Estimated Time" secondary={selectedTrain.TypeAorD === 'A' ? `Arrival at ${selectedTrain.ETA}` : `Departure at ${selectedTrain.ETD}`} primaryTypographyProps={{ fontWeight: 'bold' }} secondaryTypographyProps={{ color: colors.textSecondary }} />
+                    <ListItemText
+                      primary="Estimated Time"
+                      secondary={
+                        selectedTrain.TypeAorD === 'A'
+                          ? `Arrival at ${selectedTrain.ETA}`
+                          : `Departure at ${selectedTrain.ETD}`
+                      }
+                      primaryTypographyProps={{ fontWeight: 'bold' }}
+                      secondaryTypographyProps={{ color: colors.textSecondary }}
+                    />
                   </ListItem>
                   <ListItem>
-                    <ListItemText primary="Late By" secondary={selectedTrain.LateBy} primaryTypographyProps={{ fontWeight: 'bold' }} secondaryTypographyProps={{ color: colors.textSecondary }} />
+                    <ListItemText
+                      primary="Late By"
+                      secondary={selectedTrain.LateBy}
+                      primaryTypographyProps={{ fontWeight: 'bold' }}
+                      secondaryTypographyProps={{ color: colors.textSecondary }}
+                    />
                   </ListItem>
                   <ListItem>
-                    <ListItemText primary="Platform Number" secondary={selectedTrain.PFNo || 'N/A'} primaryTypographyProps={{ fontWeight: 'bold' }} secondaryTypographyProps={{ color: colors.textSecondary }} />
+                    <ListItemText
+                      primary="Platform Number"
+                      secondary={selectedTrain.PFNo || 'N/A'}
+                      primaryTypographyProps={{ fontWeight: 'bold' }}
+                      secondaryTypographyProps={{ color: colors.textSecondary }}
+                    />
                   </ListItem>
                   <ListItem>
-                    <ListItemText primary="Status" secondary={<Chip label={selectedTrain.Status} size="small" sx={{ bgcolor: getStatusColor(selectedTrain.Status), color: colors.darkBg, fontWeight: 'bold' }} />} primaryTypographyProps={{ fontWeight: 'bold' }} />
+                    <ListItemText
+                      primary="Status"
+                      secondary={
+                        <Chip
+                          label={selectedTrain.Status}
+                          size="small"
+                          sx={{
+                            bgcolor: getStatusColor(selectedTrain.Status),
+                            color: colors.darkBg,
+                            fontWeight: 'bold',
+                          }}
+                        />
+                      }
+                      primaryTypographyProps={{ fontWeight: 'bold' }}
+                    />
                   </ListItem>
                 </List>
 
@@ -502,23 +578,40 @@ export default function ActiveTrainsPage() {
                         No coach information available.
                       </Typography>
                     ) : (
-                      <Stack direction="row" flexWrap="wrap" gap={1} sx={{ mt: 1, maxHeight: 150, overflowY: 'auto' }}>
+                      <Stack
+                        direction="row"
+                        flexWrap="wrap"
+                        gap={1}
+                        sx={{ mt: 1, maxHeight: 150, overflowY: 'auto' }}
+                      >
                         {selectedTrain.CoachList.map((coach, idx) => (
-                          <Chip key={idx} label={coach} size="small" sx={{ bgcolor: colors.primary, color: colors.darkBg, fontWeight: 'bold' }} />
+                          <Chip
+                            key={idx}
+                            label={coach}
+                            size="small"
+                            sx={{ bgcolor: colors.primary, color: colors.darkBg, fontWeight: 'bold' }}
+                          />
                         ))}
                       </Stack>
                     )}
                   </Collapse>
                 </Box>
 
-                <Typography variant="caption" sx={{ color: colors.textSecondary, fontStyle: 'italic', mt: 2, textAlign: 'right' }}>
+                <Typography
+                  variant="caption"
+                  sx={{ color: colors.textSecondary, fontStyle: 'italic', mt: 2, textAlign: 'right' }}
+                >
                   Created At: {new Date(selectedTrain.createdAt).toLocaleString()}
                 </Typography>
               </Box>
             )}
           </DialogContent>
           <DialogActions>
-            <Button onClick={handleCloseDialog} variant="contained" sx={{ bgcolor: colors.secondary, color: '#fff', '&:hover': { bgcolor: '#f25f50' } }}>
+            <Button
+              onClick={handleCloseDialog}
+              variant="contained"
+              sx={{ bgcolor: colors.secondary, color: '#fff', '&:hover': { bgcolor: '#f25f50' } }}
+            >
               Close
             </Button>
           </DialogActions>

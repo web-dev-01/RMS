@@ -80,91 +80,23 @@ export default function CapAlerts() {
     }
   };
 
-  // Download all CAP alerts as CSV
-  const downloadAllAlerts = async () => {
-    try {
-      const res = await fetch(`/api/rms/cap-alerts?stationCode=${stationCode}`, {
-        headers: { 'x-api-key': process.env.NEXT_PUBLIC_API_KEY || '' },
-      });
-      const json = await res.json();
-
-      if (!json.success || !Array.isArray(json.data)) {
-        alert('No data available for download');
-        return;
-      }
-
-      const allAlerts = json.data;
-
-      // Prepare CSV headers
-      const headers = [
-        'ID',
-        'Station Code',
-        'Identifier',
-        'Sender',
-        'Sent',
-        'Status',
-        'Message Type',
-        'Source',
-        'Scope',
-        'Category',
-        'Event',
-        'Urgency',
-        'Severity',
-        'Certainty',
-        'Headline',
-        'Description',
-        'Effective',
-        'Expires',
-        'Areas',
-      ];
-
-      // Convert alert data to CSV rows
-      const rows = allAlerts.map((alert: CapAlert) => [
-        alert._id,
-        alert.stationCode,
-        alert.identifier,
-        alert.sender,
-        alert.sent,
-        alert.status,
-        alert.msgType,
-        alert.source,
-        alert.scope,
-        alert.info.category,
-        alert.info.event,
-        alert.info.urgency,
-        alert.info.severity,
-        alert.info.certainty,
-        `"${alert.info.headline.replace(/"/g, '""')}"`, // quote and escape quotes inside text
-        `"${alert.info.description.replace(/"/g, '""')}"`,
-        alert.info.effective,
-        alert.info.expires,
-        `"${alert.info.area.map(a => a.areaDesc).join('; ').replace(/"/g, '""')}"`,
-      ]);
-
-      // Join headers and rows
-      const csvContent =
-        [headers, ...rows]
-          .map((row) => row.join(','))
-          .join('\n');
-
-      // Create Blob and download link
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', `CAP_Alerts_${stationCode}_${new Date().toISOString()}.csv`);
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-    } catch (error) {
-      alert('Failed to download CAP alerts');
-    }
-  };
-
   useEffect(() => {
     fetchAlerts();
   }, [stationCode]);
+
+  // Download handler moved out for clarity (optional)
+  const handleDownload = () => {
+    const dataStr = JSON.stringify(alerts, null, 2);
+    const blob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `CAP_Alerts_${stationCode}_${new Date().toISOString()}.json`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  };
 
   return (
     <Card
@@ -197,30 +129,22 @@ export default function CapAlerts() {
               variant="contained"
               size="small"
               sx={{ bgcolor: '#c2d8e9', '&:hover': { bgcolor: '#388e3c' } }}
-              onClick={() => router.push('/cap-alerts')}
+              onClick={() => router.push('/rms/cap-alerts')}
             >
               View All
             </Button>
             <Button
-              variant="outlined"
+              variant="contained"
               size="small"
-              sx={{
-                color: '#90CAF9',
-                borderColor: '#90CAF9',
-                '&:hover': {
-                  bgcolor: '#90CAF9',
-                  color: '#193f11',
-                  borderColor: '#90CAF9',
-                },
-              }}
-              onClick={downloadAllAlerts}
-              disabled={loading}
+              sx={{ bgcolor: '#4caf50', '&:hover': { bgcolor: '#388e3c' } }}
+              onClick={handleDownload}
+              disabled={alerts.length === 0}
             >
-              Download All
+              Download
             </Button>
           </Box>
         }
-        sx={{ pb: 1}}
+        sx={{ pb: 1 }}
       />
 
       {loading ? (
@@ -258,41 +182,38 @@ export default function CapAlerts() {
             bgcolor: 'transparent',
             flex: 1,
             overflowY: 'auto',
-            width: '90%',
-            mx: 'auto',
+            width: '100%',
+            mx: 0,
+            px: 0,
+            boxShadow: 'none',
             '&::-webkit-scrollbar': { width: '6px' },
             '&::-webkit-scrollbar-thumb': { backgroundColor: '#555', borderRadius: '3px' },
           }}
         >
-          <Table size="small" stickyHeader>
+          <Table size="small" stickyHeader sx={{ width: '100%' }}>
             <TableHead>
               <TableRow>
-                <TableCell sx={{ color: '#90CAF9', fontWeight: 'bold' }}>Headline</TableCell>
-                <TableCell sx={{ color: '#90CAF9', fontWeight: 'bold' }}>Event</TableCell>
-                <TableCell sx={{ color: '#90CAF9', fontWeight: 'bold' }}>Category</TableCell>
+                <TableCell sx={{ color: '#90CAF9', fontWeight: 'bold' }}>Identifier</TableCell>
+                <TableCell sx={{ color: '#90CAF9', fontWeight: 'bold' }}>Sender</TableCell>
+                <TableCell sx={{ color: '#90CAF9', fontWeight: 'bold' }}>Sent</TableCell>
+                <TableCell sx={{ color: '#90CAF9', fontWeight: 'bold' }}>Status</TableCell>
+                <TableCell sx={{ color: '#90CAF9', fontWeight: 'bold' }}>Message Type</TableCell>
                 <TableCell sx={{ color: '#90CAF9', fontWeight: 'bold' }}>Urgency</TableCell>
                 <TableCell sx={{ color: '#90CAF9', fontWeight: 'bold' }}>Severity</TableCell>
+                <TableCell sx={{ color: '#90CAF9', fontWeight: 'bold' }}>Certainty</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {alerts.map((alert) => (
                 <TableRow key={alert._id} sx={{ '&:hover': { backgroundColor: '#2a2a2a' } }}>
-                  <TableCell
-                    sx={{
-                      color: '#E0E0E0',
-                      maxWidth: 180,
-                      whiteSpace: 'nowrap',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                    }}
-                    title={alert.info.headline}
-                  >
-                    {alert.info.headline}
-                  </TableCell>
-                  <TableCell sx={{ color: '#ccc' }}>{alert.info.event}</TableCell>
-                  <TableCell sx={{ color: '#ccc' }}>{alert.info.category}</TableCell>
+                  <TableCell sx={{ color: '#E0E0E0' }}>{alert.identifier}</TableCell>
+                  <TableCell sx={{ color: '#ccc' }}>{alert.sender}</TableCell>
+                  <TableCell sx={{ color: '#ccc' }}>{new Date(alert.sent).toLocaleString()}</TableCell>
+                  <TableCell sx={{ color: '#ccc' }}>{alert.status}</TableCell>
+                  <TableCell sx={{ color: '#ccc' }}>{alert.msgType}</TableCell>
                   <TableCell sx={{ color: '#ff4444', fontWeight: 'bold' }}>{alert.info.urgency}</TableCell>
                   <TableCell sx={{ color: '#ff4444', fontWeight: 'bold' }}>{alert.info.severity}</TableCell>
+                  <TableCell sx={{ color: '#ff4444', fontWeight: 'bold' }}>{alert.info.certainty}</TableCell>
                 </TableRow>
               ))}
             </TableBody>

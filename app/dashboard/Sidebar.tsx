@@ -7,7 +7,6 @@ import {
   Typography,
   Toolbar,
   List,
-  Paper,
   ListItemButton,
   ListItemIcon,
   ListItemText,
@@ -50,7 +49,7 @@ const Sidebar = () => {
   const menuItems = [
     { text: 'Dashboard', icon: <Home />, path: '/dashboard', badge: null },
     { text: 'Active Trains', icon: <Train />, path: '/rms/active-trains', badge: '12' },
-    { text: 'Station Management', icon: <Settings />, path: '/rms/station-info', badge: null },
+    { text: 'Platforms & Devices', icon: <Settings />, path: '/rms/platforms-devices', badge: null },
     { text: 'System Logs', icon: <Assignment />, path: '/rms/event-logs', badge: null },
     { text: 'CAP Alerts', icon: <Notifications />, path: '/rms/cap-alerts', badge: '3' },
   ];
@@ -220,111 +219,113 @@ const Sidebar = () => {
             py: 3,
           }}
         >
-        <Typography
-          variant="overline"
-          sx={{
-            color: palette.textTertiary,
-            fontWeight: 600,
-            fontSize: '0.7rem',
-            letterSpacing: '0.1em',
-            px: 2,
-            mb: 2,
-            display: 'block',
-            fontFamily: '"Inter", "Roboto", sans-serif',
-          }}
-        >
-          NAVIGATION
-        </Typography>
+          <Typography
+            variant="overline"
+            sx={{
+              color: palette.textTertiary,
+              fontWeight: 600,
+              fontSize: '0.7rem',
+              letterSpacing: '0.1em',
+              px: 2,
+              mb: 2,
+              display: 'block',
+              fontFamily: '"Inter", "Roboto", sans-serif',
+            }}
+          >
+            NAVIGATION
+          </Typography>
 
-        <List disablePadding sx={{ '& > *:not(:last-child)': { mb: 1 } }}>
-          {menuItems.map((item) => {
-            const isActive = pathname === item.path;
-            return (
-              <ListItemButton
-                key={item.text}
-                onClick={() => handleNavigation(item.path)}
-                sx={{
-                  borderRadius: 2,
-                  px: 2.5,
-                  py: 1.5,
-                  position: 'relative',
-                  bgcolor: isActive ? palette.cardBg : 'transparent',
-                  border: isActive ? `1px solid ${palette.accent}20` : '1px solid transparent',
-                  transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                  '&:hover': {
-                    bgcolor: isActive ? palette.cardBg : palette.hoverBg,
-                    borderColor: isActive ? `${palette.accent}40` : `${palette.border}`,
-                    transform: 'translateX(2px)',
-                  },
-                  '&::before': isActive ? {
-                    content: '""',
-                    position: 'absolute',
-                    left: 0,
-                    top: '50%',
-                    transform: 'translateY(-50%)',
-                    width: '3px',
-                    height: '60%',
-                    bgcolor: palette.accent,
-                    borderRadius: '0 2px 2px 0',
-                  } : {},
-                }}
-              >
-                <ListItemIcon
+          <List disablePadding sx={{ '& > *:not(:last-child)': { mb: 1 } }}>
+            {menuItems.map((item) => {
+              const isActive = pathname === item.path;
+              return (
+                <ListItemButton
+                  key={item.text}
+                  onClick={() => handleNavigation(item.path)}
                   sx={{
-                    color: isActive ? palette.accent : palette.textSecondary,
-                    minWidth: 40,
-                    '& .MuiSvgIcon-root': {
-                      fontSize: '1.3rem',
+                    borderRadius: 2,
+                    px: 2.5,
+                    py: 1.5,
+                    position: 'relative',
+                    bgcolor: isActive ? palette.cardBg : 'transparent',
+                    border: isActive ? `1px solid ${palette.accent}20` : '1px solid transparent',
+                    transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                    '&:hover': {
+                      bgcolor: isActive ? palette.cardBg : palette.hoverBg,
+                      borderColor: isActive ? `${palette.accent}40` : `${palette.border}`,
+                      transform: 'translateX(2px)',
                     },
-                    transition: 'color 0.2s ease',
+                    '&::before': isActive
+                      ? {
+                          content: '""',
+                          position: 'absolute',
+                          left: 0,
+                          top: '50%',
+                          transform: 'translateY(-50%)',
+                          width: '3px',
+                          height: '60%',
+                          bgcolor: palette.accent,
+                          borderRadius: '0 2px 2px 0',
+                        }
+                      : {},
                   }}
                 >
-                  {item.icon}
-                </ListItemIcon>
-                
-                <ListItemText
-                  primary={item.text}
-                  sx={{
-                    '& .MuiListItemText-primary': {
-                      fontFamily: '"Inter", "Roboto", sans-serif',
-                      fontSize: '0.9rem',
-                      fontWeight: isActive ? 600 : 500,
-                      color: isActive ? palette.textPrimary : palette.textSecondary,
-                      transition: 'all 0.2s ease',
-                    },
-                  }}
-                />
-                
-                {item.badge && (
-                  <Chip
-                    label={item.badge}
-                    size="small"
+                  <ListItemIcon
                     sx={{
-                      height: 20,
-                      fontSize: '0.7rem',
-                      fontWeight: 600,
-                      bgcolor: isActive ? palette.accent : palette.warning,
-                      color: palette.background,
-                      minWidth: 24,
-                      '& .MuiChip-label': {
-                        px: 1,
+                      color: isActive ? palette.accent : palette.textSecondary,
+                      minWidth: 40,
+                      '& .MuiSvgIcon-root': {
+                        fontSize: '1.3rem',
+                      },
+                      transition: 'color 0.2s ease',
+                    }}
+                  >
+                    {item.icon}
+                  </ListItemIcon>
+
+                  <ListItemText
+                    primary={item.text}
+                    sx={{
+                      '& .MuiListItemText-primary': {
+                        fontFamily: '"Inter", "Roboto", sans-serif',
+                        fontSize: '0.9rem',
+                        fontWeight: isActive ? 600 : 500,
+                        color: isActive ? palette.textPrimary : palette.textSecondary,
+                        transition: 'all 0.2s ease',
                       },
                     }}
                   />
-                )}
-              </ListItemButton>
-            );
-          })}
+
+                  {item.badge && (
+                    <Chip
+                      label={item.badge}
+                      size="small"
+                      sx={{
+                        height: 20,
+                        fontSize: '0.7rem',
+                        fontWeight: 600,
+                        bgcolor: isActive ? palette.accent : palette.warning,
+                        color: palette.background,
+                        minWidth: 24,
+                        '& .MuiChip-label': {
+                          px: 1,
+                        },
+                      }}
+                    />
+                  )}
+                </ListItemButton>
+              );
+            })}
           </List>
         </Box>
       </Box>
 
       {/* Footer */}
       <Divider sx={{ bgcolor: palette.border }} />
-      <Box 
-        sx={{ 
-          p: 3, 
-          bgcolor: palette.cardBg, 
+      <Box
+        sx={{
+          p: 3,
+          bgcolor: palette.cardBg,
           borderTop: `1px solid ${palette.border}`,
         }}
       >

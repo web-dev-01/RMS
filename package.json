@@ -23,6 +23,7 @@
     "js-cookie": "^3.0.5",
     "jsonwebtoken": "^9.0.2",
     "jwt-decode": "^4.0.0",
+    "leaflet": "^1.9.4",
     "lucide-react": "^0.534.0",
     "mongodb": "^6.18.0",
     "mongoose": "^8.17.0",
@@ -33,6 +34,7 @@
     "react-easy-crop": "^5.5.0",
     "react-hot-toast": "^2.5.2",
     "react-image-crop": "^11.0.10",
+    "react-leaflet": "^5.0.0",
     "react-toastify": "^11.0.5",
     "resend": "^4.7.0",
     "uuid": "^11.1.0"

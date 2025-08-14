@@ -8,8 +8,9 @@ import {
   Table,
   TableBody,
   TableCell,
-  TableRow,
   TableContainer,
+  TableHead,
+  TableRow,
 } from '@mui/material';
 
 type StationType = {
@@ -57,7 +58,7 @@ export default function StationInfo() {
 
   if (error) {
     return (
-      <Box sx={{ py: 2, bgcolor: '#121B2A', textAlign: 'center' }}>
+      <Box sx={{ py: 2, bgcolor: '#90CAF9', textAlign: 'center' }}>
         <Typography variant="h6" color="error" fontWeight="bold">
           {error}
         </Typography>
@@ -66,12 +67,12 @@ export default function StationInfo() {
   }
 
   return (
-    <Box sx={{ bgcolor: '#121B2A', p: 2 }}>
+    <Box sx={{ bgcolor: '#2E2E2E', p: 2 }}>
       <Typography
         variant="h6"
         sx={{
           color: '#6bb4d8',
-          mb: 1,
+          mb: 2,
           textAlign: 'center',
           fontWeight: 'bold',
         }}
@@ -84,39 +85,123 @@ export default function StationInfo() {
           No stations available
         </Typography>
       ) : (
-        stations.map((station) => (
-          <Card
-            key={station.StationCode}
-            sx={{
-              bgcolor: '#2E2E2E',
-              borderRadius: 2,
-              border: '1px solid #90CAF9',
-              overflow: 'hidden',
-              mb: 2,
-            }}
-          >
-            <TableContainer sx={{ backgroundColor: '#2E2E2E' }}>
-              <Table size="small" sx={{ borderCollapse: 'collapse' }}>
-                <TableBody>
-                  <TableRow>
-                    <TableCell sx={{ color: '#90CAF9', fontWeight: 700, border: 'none' }}>
+        <Card
+          sx={{
+            bgcolor: '#2E2E2E',
+            border: '1px solid #2E2E2E',
+            p: 2,
+            overflow: 'hidden',
+          }}
+        >
+          <TableContainer sx={{ bgcolor: '#2E2E2E', width: '100%' }}>
+            <Table size="small">
+              <TableHead>
+                <TableRow>
+                  <TableCell
+                    sx={{
+                      color: '#90CAF9',
+                      fontWeight: 700,
+                      borderBottom: '2px solid #90CAF9',
+                      py: 0.5,
+                      px: 1,
+                      fontSize: '0.85rem',
+                    }}
+                  >
+                    Station (Code)
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      color: '#C0C0C0',
+                      borderBottom: '2px solid #90CAF9',
+                      py: 0.5,
+                      px: 1,
+                      fontSize: '0.85rem',
+                    }}
+                  >
+                    Hindi Name
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      color: '#A0A0A0',
+                      borderBottom: '2px solid #90CAF9',
+                      py: 0.5,
+                      px: 1,
+                      fontSize: '0.85rem',
+                    }}
+                  >
+                    Platforms
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      color: '#A0A0A0',
+                      borderBottom: '2px solid #90CAF9',
+                      py: 0.5,
+                      px: 1,
+                      fontSize: '0.85rem',
+                    }}
+                  >
+                    Spl Platforms
+                  </TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {stations.map((station) => (
+                  <TableRow key={station.StationCode}>
+                    <TableCell
+                      sx={{
+                        color: '#d7dadd',
+                        fontWeight: 700,
+                        border: 'none',
+                        py: 0.5,
+                        px: 1,
+                        fontSize: '0.85rem',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
                       {station.StationNameEnglish} ({station.StationCode})
                     </TableCell>
-                    <TableCell sx={{ color: '#C0C0C0', border: 'none' }}>
+                    <TableCell
+                      sx={{
+                        color: '#C0C0C0',
+                        border: 'none',
+                        py: 0.5,
+                        px: 1,
+                        fontSize: '0.85rem',
+                        whiteSpace: 'normal',
+                      }}
+                    >
                       {station.StationNameHindi}
                     </TableCell>
-                    <TableCell sx={{ color: '#A0A0A0', border: 'none' }}>
-                      Platforms: {station.NumberOfPlatforms}
+                    <TableCell
+                      sx={{
+                        color: '#A0A0A0',
+                        border: 'none',
+                        py: 0.5,
+                        px: 1,
+                        fontSize: '0.85rem',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      {station.NumberOfPlatforms}
                     </TableCell>
-                    <TableCell sx={{ color: '#A0A0A0', border: 'none' }}>
-                      Special Platforms: {station.NumberOfSplPlatforms}
+                    <TableCell
+                      sx={{
+                        color: '#A0A0A0',
+                        border: 'none',
+                        py: 0.5,
+                        px: 1,
+                        fontSize: '0.85rem',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      {station.NumberOfSplPlatforms}
                     </TableCell>
                   </TableRow>
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </Card>
-        ))
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Card>
       )}
     </Box>
   );

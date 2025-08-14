@@ -46,7 +46,7 @@ const AppToolbar: React.FC<AppToolbarProps> = ({ handleDrawerToggle }) => {
 
   const handleProfileClick = () => {
     handleMenuClose();
-    router.push('/profile-details');
+    router.push('/view-profile');
   };
 
   const handleLogout = () => {

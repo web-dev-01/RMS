@@ -1,63 +1,97 @@
-// app/api/user/profile/route.ts
-
 import { NextResponse } from 'next/server';
-import { MongoClient } from 'mongodb';
+import dbConnect from '@/lib/dbConnect';
+import User from '@/models/User';
+import jwt from 'jsonwebtoken';
 
-const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017';
-const client = new MongoClient(uri);
+const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret';
 
-export async function PUT(req: Request) {
+// Middleware to verify JWT
+async function verifyToken(req: Request) {
+  const token = req.headers.get('Authorization')?.replace('Bearer ', '');
+  if (!token) {
+    return null;
+  }
   try {
-    const { email, fullName, phoneNumber, image } = await req.json();
-
-    if (!email || !fullName || !phoneNumber) {
-      return NextResponse.json({ message: 'Missing required fields' }, { status: 400 });
-    }
-
-    await client.connect();
-    const db = client.db('railway');
-    const usersCollection = db.collection('users');
-
-    const result = await usersCollection.updateOne(
-      { email },
-      { $set: { fullName, phoneNumber, imageUrl: image || '' } },
-      { upsert: true }
-    );
-
-    const userProfile = { email, fullName, phoneNumber, imageUrl: image || '' };
-    return NextResponse.json(
-      { message: 'Profile saved successfully', data: userProfile },
-      { status: 200 }
-    );
-  } catch (error) {
-    console.error('Error saving profile:', error);
-    return NextResponse.json({ message: 'Error saving profile' }, { status: 500 });
-  } finally {
-    await client.close();
+    const decoded = jwt.verify(token, JWT_SECRET) as { id: string; email: string };
+    return decoded;
+  } catch {
+    return null;
   }
 }
 
+// GET - fetch profile by email
 export async function GET(req: Request) {
   try {
-    const url = new URL(req.url);
-    const email = url.searchParams.get('email');
-
-    if (!email) {
-      return NextResponse.json({ message: 'Email is required' }, { status: 400 });
+    await dbConnect();
+    const decoded = await verifyToken(req);
+    if (!decoded) {
+      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
 
-    await client.connect();
-    const db = client.db('railway');
-    const usersCollection = db.collection('users');
+    const user = await User.findOne({ email: decoded.email });
+    if (!user) {
+      return NextResponse.json({ message: 'No user found' }, { status: 404 });
+    }
 
-    const user = await usersCollection.findOne({ email });
-    const userProfile = user || { email, fullName: '', phoneNumber: '', imageUrl: '' };
+    return NextResponse.json({
+      fullName: user.fullName || '',
+      phoneNumber: user.phoneNumber || '',
+      image: user.image || null,
+      email: user.email,
+      completed: !!(user.fullName && user.phoneNumber && user.image),
+    });
+  } catch (error: any) {
+    console.error('Profile fetch error:', error.message, error.stack);
+    return NextResponse.json(
+      { message: 'Internal server error', error: error.message },
+      { status: 500 }
+    );
+  }
+}
 
-    return NextResponse.json({ success: true, users: [userProfile] }, { status: 200 });
-  } catch (error) {
-    console.error('Error fetching profile:', error);
-    return NextResponse.json({ message: 'Error fetching profile' }, { status: 500 });
-  } finally {
-    await client.close();
+// POST - create or update profile
+export async function POST(req: Request) {
+  try {
+    await dbConnect();
+    const decoded = await verifyToken(req);
+    if (!decoded) {
+      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { fullName, phoneNumber, image } = await req.json();
+
+    if (!fullName) {
+      return NextResponse.json(
+        { message: 'Full name is required' },
+        { status: 400 }
+      );
+    }
+
+    const user = await User.findOneAndUpdate(
+      { email: decoded.email },
+      {
+        fullName,
+        phoneNumber: phoneNumber || '',
+        image: image || null,
+      },
+      { new: true, upsert: true }
+    );
+
+    return NextResponse.json({
+      message: 'Profile saved successfully',
+      user: {
+        fullName: user.fullName,
+        phoneNumber: user.phoneNumber || '',
+        image: user.image || null,
+        email: user.email,
+        completed: !!(user.fullName && user.phoneNumber && user.image),
+      },
+    });
+  } catch (error: any) {
+    console.error('Profile save error:', error.message, error.stack);
+    return NextResponse.json(
+      { message: 'Internal server error', error: error.message },
+      { status: 500 }
+    );
   }
 }

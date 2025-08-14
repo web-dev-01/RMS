@@ -23,7 +23,7 @@ import { usePortalTheme } from '@/components/ThemeProvider';
 export default function LoginPage() {
   const router = useRouter();
   const theme = usePortalTheme();
-  const primaryColor = theme?.primaryColor || '#00C291';
+  const primaryColor = theme?.primaryColor || '#00ED64';
 
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [showPassword, setShowPassword] = useState(false);
@@ -48,15 +48,12 @@ export default function LoginPage() {
 
     try {
       const res = await axios.post('/api/auth/login', formData);
-      const { token, user } = res.data;
+      const { token } = res.data;
 
-      // Save token & user ONLY in React state (or you can keep it in context or redux)
-      // Here, we will just keep in state, and redirect
-      
-      // For demonstration, you can do:
-      // window.sessionToken = token; // or keep in React Context if you want
-      
-      // Redirect to profile completion or dashboard
+      // Store token in local storage
+      localStorage.setItem('token', token);
+
+      // Redirect to profile completion
       router.push('/profile-completion');
     } catch (err: any) {
       const msg =

@@ -51,11 +51,13 @@ export default function Dashboard() {
       {/* Station Info */}
       <Card
         sx={{
-          bgcolor: '#1E1E1E',
+          bgcolor: '#90CAF9',
           border: '1px solid #90CAF9',
           borderRadius: 2,
-          p: 1,
-          mt: 1,
+          p: 0,
+          px:0,
+          pt:0,
+          mt: 0,
         }}
       >
         <StationInfo />

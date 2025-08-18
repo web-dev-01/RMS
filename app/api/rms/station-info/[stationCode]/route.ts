@@ -5,13 +5,16 @@ import { Station } from '@/models/station';
 const checkApiKey = (req: NextRequest) => req.headers.get('x-api-key') === process.env.API_KEY;
 
 // ✅ PUT: Update station by stationCode
-export async function PUT(req: NextRequest, context: { params: { stationCode: string } }) {
+export async function PUT(
+  req: NextRequest,
+  { params }: { params: { stationCode: string } }
+) {
   try {
     if (!checkApiKey(req)) return NextResponse.json({ success: false, message: 'Invalid API key' }, { status: 401 });
 
     await dbConnect();
 
-    const stationCode = context.params.stationCode;
+    const stationCode = params.stationCode;
     if (!stationCode) return NextResponse.json({ success: false, message: 'stationCode is required' }, { status: 400 });
 
     const body = await req.json();
@@ -32,13 +35,16 @@ export async function PUT(req: NextRequest, context: { params: { stationCode: st
 }
 
 // ✅ DELETE: Remove station by stationCode
-export async function DELETE(req: NextRequest, context: { params: { stationCode: string } }) {
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: { stationCode: string } }
+) {
   try {
     if (!checkApiKey(req)) return NextResponse.json({ success: false, message: 'Invalid API key' }, { status: 401 });
 
     await dbConnect();
 
-    const stationCode = context.params.stationCode;
+    const stationCode = params.stationCode;
     if (!stationCode) return NextResponse.json({ success: false, message: 'stationCode is required' }, { status: 400 });
 
     const deletedStation = await Station.findOneAndDelete({ StationCode: stationCode.toUpperCase() }).lean();

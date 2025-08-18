@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import mongoose from 'mongoose';
 import dbConnect from '@/lib/dbConnect';
 import { Train } from '@/models/trainModel';
+import { Station } from '@/models/station'; // ⬅ Added to fetch Station details
 
 // Validate API key
 const validateApiKey = (req: NextRequest) => {
@@ -13,14 +14,13 @@ const validateApiKey = (req: NextRequest) => {
 // Helper to parse time and compare (IST timezone)
 const isPastETD = (etd: string) => {
   const now = new Date();
-  // Adjust for IST (UTC+5:30)
   now.setHours(now.getHours() + 5);
   now.setMinutes(now.getMinutes() + 30);
   const [hours, minutes] = etd.split(':').map(Number);
   const etdDate = new Date(now);
   etdDate.setHours(hours, minutes, 0, 0);
   etdDate.setDate(now.getDate());
-  return now > new Date(etdDate.getTime() + 15 * 60000); // 15 minutes buffer
+  return now > new Date(etdDate.getTime() + 15 * 60000); // 15 min buffer
 };
 
 // GET: Retrieve all active trains
@@ -32,7 +32,6 @@ export async function GET(req: NextRequest) {
 
     await dbConnect();
 
-    // Cleanup expired trains
     await Train.deleteMany({
       $or: [
         { Status: { $in: ['Arrived', 'Departed'] } },
@@ -60,7 +59,7 @@ export async function GET(req: NextRequest) {
   }
 }
 
-// POST: Create multiple trains
+// POST: Create multiple trains with StationCode auto-fill
 export async function POST(req: NextRequest) {
   try {
     if (!validateApiKey(req)) {
@@ -79,77 +78,40 @@ export async function POST(req: NextRequest) {
 
     const createdTrains = [];
     for (const trainData of trains) {
-      const {
-        TrainNumber,
-        TrainNameEnglish,
-        TrainNameHindi,
-        Ref,
-        SrcCode,
-        SrcNameEnglish,
-        SrcNameHindi,
-        DestCode,
-        DestNameEnglish,
-        DestNameHindi,
-        STA,
-        STD,
-        LateBy,
-        ETA,
-        ETD,
-        PFNo,
-        Status,
-        TypeAorD,
-        CoachList
-      } = trainData;
-
-      if (
-        !TrainNumber ||
-        !TrainNameEnglish ||
-        !TrainNameHindi ||
-        !Ref ||
-        !SrcCode ||
-        !SrcNameEnglish ||
-        !SrcNameHindi ||
-        !DestCode ||
-        !DestNameEnglish ||
-        !DestNameHindi ||
-        !STA ||
-        !STD ||
-        !LateBy ||
-        !ETA ||
-        !ETD ||
-        !PFNo ||
-        !Status ||
-        !TypeAorD ||
-        !CoachList
-      ) {
-        return NextResponse.json(
-          { success: false, message: `All required fields must be provided for train ${TrainNumber || 'unknown'}` },
-          { status: 400 }
-        );
+      // ✅ Step 1: Validate StationCode
+      if (!trainData.StationCode) {
+        return NextResponse.json({ success: false, message: 'StationCode is required' }, { status: 400 });
       }
 
-      const train = new Train({
-        TrainNumber,
-        TrainNameEnglish,
-        TrainNameHindi,
-        Ref,
-        SrcCode,
-        SrcNameEnglish,
-        SrcNameHindi,
-        DestCode,
-        DestNameEnglish,
-        DestNameHindi,
-        STA,
-        STD,
-        LateBy,
-        ETA,
-        ETD,
-        PFNo,
-        Status,
-        TypeAorD,
-        CoachList
-      });
+      const station = await Station.findOne({ StationCode: trainData.StationCode.toUpperCase() });
+      if (!station) {
+        return NextResponse.json({ success: false, message: `No station found for code ${trainData.StationCode}` }, { status: 400 });
+      }
 
+      // ✅ Step 2: Auto-fill Source station details
+      trainData.SrcCode = station.StationCode;
+      trainData.SrcNameEnglish = station.StationNameEnglish;
+      trainData.SrcNameHindi = station.StationNameHindi;
+
+      // ✅ Step 3: Validate required train fields (Src fields now auto-filled)
+      const requiredFields = [
+        'TrainNumber', 'TrainNameEnglish', 'TrainNameHindi', 'Ref',
+        'SrcCode', 'SrcNameEnglish', 'SrcNameHindi',
+        'DestCode', 'DestNameEnglish', 'DestNameHindi',
+        'STA', 'STD', 'LateBy', 'ETA', 'ETD',
+        'PFNo', 'Status', 'TypeAorD', 'CoachList'
+      ];
+
+      for (const field of requiredFields) {
+        if (!trainData[field]) {
+          return NextResponse.json(
+            { success: false, message: `Field '${field}' is required` },
+            { status: 400 }
+          );
+        }
+      }
+
+      const train = new Train(trainData);
       const savedTrain = await train.save();
       createdTrains.push(savedTrain);
     }
@@ -164,7 +126,7 @@ export async function POST(req: NextRequest) {
   }
 }
 
-// PUT: Update an existing train (all fields can be overwritten)
+// PUT: Update an existing train
 export async function PUT(req: NextRequest) {
   try {
     if (!validateApiKey(req)) {

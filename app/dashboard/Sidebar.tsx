@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Box,
   Divider,
@@ -11,7 +11,7 @@ import {
   ListItemIcon,
   ListItemText,
   Avatar,
-  Chip,
+  CircularProgress,
 } from '@mui/material';
 import {
   Home,
@@ -22,46 +22,128 @@ import {
   AccountCircle,
 } from '@mui/icons-material';
 import { useRouter, usePathname } from 'next/navigation';
-import { useUser } from '@/contexts/UserContext';
 
 const drawerWidth = 280;
+
+interface UserProfile {
+  name: string;
+  image?: string | null;
+}
 
 const Sidebar = () => {
   const router = useRouter();
   const pathname = usePathname();
-  const { user } = useUser();
+
+  // Local state for user profile data
+  const [user, setUser] = useState<UserProfile | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   const palette = {
-    background: '#0B1426',      // Deeper, more professional navy
-    cardBg: '#1A2332',          // Subtle card background
-    accent: '#2563EB',          // Professional blue
-    accentHover: '#1D4ED8',     // Darker blue for hover
-    textPrimary: '#F8FAFC',     // Clean white
-    textSecondary: '#94A3B8',   // Muted gray
-    textTertiary: '#64748B',    // Even more muted
-    border: '#1E293B',          // Subtle borders
-    hoverBg: '#1E2A3A',         // Hover state
-    success: '#10B981',         // Status indicators
-    warning: '#F59E0B',
+    background: '#0B1426',
+    cardBg: '#1A2332',
+    accent: '#2563EB',
+    accentHover: '#1D4ED8',
+    textPrimary: '#F8FAFC',
+    textSecondary: '#94A3B8',
+    textTertiary: '#64748B',
+    border: '#1E293B',
+    hoverBg: '#1E2A3A',
+    success: '#10B981',
     shadow: 'rgba(0, 0, 0, 0.25)',
   };
 
   const menuItems = [
-    { text: 'Dashboard', icon: <Home />, path: '/dashboard', badge: null },
-    { text: 'Active Trains', icon: <Train />, path: '/rms/active-trains', badge: '12' },
-    { text: 'Platforms & Devices', icon: <Settings />, path: '/rms/platforms-devices', badge: null },
-    { text: 'System Logs', icon: <Assignment />, path: '/rms/event-logs', badge: null },
-    { text: 'CAP Alerts', icon: <Notifications />, path: '/rms/cap-alerts', badge: '3' },
+    { text: 'Dashboard', icon: <Home />, path: '/dashboard' },
+    { text: 'Active Trains', icon: <Train />, path: '/rms/active-trains' },
+    { text: 'Platforms & Devices', icon: <Settings />, path: '/rms/platforms-devices' },
+    { text: 'System Logs', icon: <Assignment />, path: '/rms/event-logs' },
+    { text: 'CAP Alerts', icon: <Notifications />, path: '/rms/cap-alerts' },
   ];
+
+  // Fetch user profile on component mount
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      setLoading(true);
+      setError('');
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          setError('Not logged in');
+          setUser(null);
+          setLoading(false);
+          return;
+        }
+        const res = await fetch('/api/user-profile', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        if (!res.ok) {
+          throw new Error(`Error: ${res.status}`);
+        }
+        const data = await res.json();
+        setUser({
+          name: data.fullName || data.name || 'User',
+          image: data.image || null,
+        });
+      } catch (err: any) {
+        setError(err.message || 'Failed to load user profile');
+        setUser(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserProfile();
+  }, []);
 
   const handleNavigation = (path: string) => {
     router.push(path);
   };
 
+  if (loading) {
+    return (
+      <Box
+        sx={{
+          width: drawerWidth,
+          height: '100vh',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          bgcolor: palette.background,
+          color: palette.textPrimary,
+        }}
+      >
+        <CircularProgress color="primary" />
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Box
+        sx={{
+          width: drawerWidth,
+          height: '100vh',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          bgcolor: palette.background,
+          color: 'error.main',
+          px: 2,
+          textAlign: 'center',
+        }}
+      >
+        <Typography>{error}</Typography>
+      </Box>
+    );
+  }
+
   return (
     <Box
       sx={{
-        width: drawerWidth,
+        width: 220,
         height: '100vh',
         display: 'flex',
         flexDirection: 'column',
@@ -86,8 +168,8 @@ const Sidebar = () => {
             bottom: 0,
             left: '50%',
             transform: 'translateX(-50%)',
-            width: '60%',
-            height: '2px',
+            width: '50%',
+            height: '0px',
             background: `linear-gradient(90deg, transparent, ${palette.accent}, transparent)`,
           },
         }}
@@ -96,7 +178,7 @@ const Sidebar = () => {
           <Typography
             variant="h5"
             sx={{
-              fontWeight: 700,
+              fontWeight: 500,
               color: palette.accent,
               fontFamily: '"Inter", "Roboto", sans-serif',
               letterSpacing: '0.02em',
@@ -117,7 +199,7 @@ const Sidebar = () => {
               letterSpacing: '0.1em',
             }}
           >
-            Railway Management System
+            
           </Typography>
         </Box>
       </Toolbar>
@@ -133,15 +215,17 @@ const Sidebar = () => {
         >
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
             <Avatar
+              src={user.image || undefined}
+              alt={user.name || 'User'}
               sx={{
                 width: 44,
                 height: 44,
-                bgcolor: palette.accent,
-                fontSize: '1.1rem',
+                bgcolor: user.image ? 'transparent' : palette.accent,
+                fontSize: '1.5rem',
                 fontWeight: 600,
               }}
             >
-              {user.name?.charAt(0)?.toUpperCase() || <AccountCircle />}
+              {!user.image && (user.name?.charAt(0).toUpperCase() || <AccountCircle />)}
             </Avatar>
             <Box sx={{ flex: 1, minWidth: 0 }}>
               <Typography
@@ -156,7 +240,7 @@ const Sidebar = () => {
                   whiteSpace: 'nowrap',
                 }}
               >
-                {user.name || 'User'}
+                {user.name}
               </Typography>
               <Typography
                 variant="caption"
@@ -166,7 +250,7 @@ const Sidebar = () => {
                   fontFamily: '"Inter", "Roboto", sans-serif',
                 }}
               >
-                Station Controller
+                user
               </Typography>
             </Box>
             <Box
@@ -213,18 +297,13 @@ const Sidebar = () => {
         }}
       >
         {/* Navigation Menu */}
-        <Box
-          sx={{
-            px: 2,
-            py: 3,
-          }}
-        >
+        <Box sx={{ px: 1, py: 3 }}>
           <Typography
             variant="overline"
             sx={{
               color: palette.textTertiary,
               fontWeight: 600,
-              fontSize: '0.7rem',
+              fontSize: '0.5rem',
               letterSpacing: '0.1em',
               px: 2,
               mb: 2,
@@ -295,24 +374,6 @@ const Sidebar = () => {
                       },
                     }}
                   />
-
-                  {item.badge && (
-                    <Chip
-                      label={item.badge}
-                      size="small"
-                      sx={{
-                        height: 20,
-                        fontSize: '0.7rem',
-                        fontWeight: 600,
-                        bgcolor: isActive ? palette.accent : palette.warning,
-                        color: palette.background,
-                        minWidth: 24,
-                        '& .MuiChip-label': {
-                          px: 1,
-                        },
-                      }}
-                    />
-                  )}
                 </ListItemButton>
               );
             })}
@@ -340,7 +401,7 @@ const Sidebar = () => {
             fontWeight: 500,
           }}
         >
-          © {new Date().getFullYear()} Indian Railways
+          © {new Date().getFullYear()} 2025 TIC KOLKATA 
         </Typography>
         <Typography
           variant="caption"
@@ -362,3 +423,4 @@ const Sidebar = () => {
 };
 
 export default Sidebar;
+//heyyy

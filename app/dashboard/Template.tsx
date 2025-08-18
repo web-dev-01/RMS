@@ -7,7 +7,7 @@ import AppFooter from './AppFooter';
 import Sidebar from './Sidebar';
 import { useUser } from '@/contexts/UserContext';
 
-const drawerWidth = 240;
+const drawerWidth = 220;
 
 interface TemplateProps {
   children: React.ReactNode;
@@ -30,22 +30,32 @@ const Template: React.FC<TemplateProps> = ({ children }) => {
       <CssBaseline />
       <AppToolbar handleDrawerToggle={handleDrawerToggle} />
       <Box sx={{ display: 'flex', flexGrow: 1 }}>
+        {/* Sidebar Drawer */}
         <Drawer
           variant="temporary"
           open={mobileOpen}
           onClose={handleDrawerToggle}
           ModalProps={{
-            keepMounted: true,
+            keepMounted: true, // Better performance on mobile
           }}
           sx={{
             '& .MuiDrawer-paper': {
               boxSizing: 'border-box',
               width: drawerWidth,
+              overflowY: 'scroll',
+
+              /* 🔹 Hide scrollbar visually but keep scrolling functional */
+              scrollbarWidth: 'none', // Firefox
+              '&::-webkit-scrollbar': {
+                display: 'none', // Chrome, Safari, Edge
+              },
             },
           }}
         >
           <Sidebar user={user} />
         </Drawer>
+
+        {/* Main content */}
         <Box
           component="main"
           sx={{

@@ -3,7 +3,6 @@
 import React, { useEffect, useState } from 'react';
 import {
   Box,
-  Card,
   Typography,
   Table,
   TableBody,
@@ -11,6 +10,7 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  Paper
 } from '@mui/material';
 
 type StationType = {
@@ -48,8 +48,8 @@ export default function StationInfo() {
 
   if (loading) {
     return (
-      <Box sx={{ py: 2, bgcolor: '#121B2A', textAlign: 'center' }}>
-        <Typography variant="h6" color="primary">
+      <Box sx={{ py: 1, bgcolor: '#121B2A', textAlign: 'center' }}>
+        <Typography variant="body2" color="primary">
           Loading station info...
         </Typography>
       </Box>
@@ -58,8 +58,8 @@ export default function StationInfo() {
 
   if (error) {
     return (
-      <Box sx={{ py: 2, bgcolor: '#90CAF9', textAlign: 'center' }}>
-        <Typography variant="h6" color="error" fontWeight="bold">
+      <Box sx={{ py: 1, bgcolor: '#90CAF9', textAlign: 'center' }}>
+        <Typography variant="body2" color="error" fontWeight="bold">
           {error}
         </Typography>
       </Box>
@@ -67,141 +67,79 @@ export default function StationInfo() {
   }
 
   return (
-    <Box sx={{ bgcolor: '#2E2E2E', p: 2 }}>
+    <Box 
+      sx={{ 
+        bgcolor: '#2E2E2E', 
+        p: 1, 
+        height: '100%', 
+        display: 'flex', 
+        flexDirection: 'column' 
+      }}
+    >
       <Typography
-        variant="h6"
+        variant="subtitle1"
         sx={{
           color: '#6bb4d8',
-          mb: 2,
+          mb: 1,
           textAlign: 'center',
           fontWeight: 'bold',
+          
         }}
       >
         Station Information
       </Typography>
 
       {stations.length === 0 ? (
-        <Typography variant="h6" color="textSecondary" textAlign="center">
+        <Typography variant="body2" color="textSecondary" textAlign="center">
           No stations available
         </Typography>
       ) : (
-        <Card
-          sx={{
-            bgcolor: '#2E2E2E',
-            border: '1px solid #2E2E2E',
-            p: 2,
-            overflow: 'hidden',
+        <TableContainer 
+          component={Paper} 
+          sx={{ 
+            bgcolor: '#2E2E2E', 
+            flexGrow: 1,
+            overflowY: 'auto' 
           }}
         >
-          <TableContainer sx={{ bgcolor: '#2E2E2E', width: '100%' }}>
-            <Table size="small">
-              <TableHead>
-                <TableRow>
-                  <TableCell
-                    sx={{
-                      color: '#90CAF9',
-                      fontWeight: 700,
-                      borderBottom: '2px solid #90CAF9',
-                      py: 0.5,
-                      px: 1,
-                      fontSize: '0.85rem',
-                    }}
-                  >
-                    Station (Code)
+          <Table size="small" stickyHeader>
+            <TableHead>
+              <TableRow>
+                <TableCell sx={{ color: '#90CAF9', fontWeight: 700, borderBottom: '2px solid #90CAF9', fontSize: '0.8rem', py: 0.5 }}>
+                  Station (Code)
+                </TableCell>
+                <TableCell sx={{ color: '#C0C0C0', borderBottom: '2px solid #90CAF9', fontSize: '0.8rem', py: 0.5 }}>
+                  Hindi Name
+                </TableCell>
+                <TableCell sx={{ color: '#A0A0A0', borderBottom: '2px solid #90CAF9', fontSize: '0.8rem', py: 0.5 }}>
+                  Platforms
+                </TableCell>
+                <TableCell sx={{ color: '#A0A0A0', borderBottom: '2px solid #90CAF9', fontSize: '0.8rem', py: 0.5 }}>
+                  Spl Platforms
+                </TableCell>
+              </TableRow>
+            </TableHead>
+
+            <TableBody>
+              {stations.map((station) => (
+                <TableRow key={station.StationCode} hover>
+                  <TableCell sx={{ color: '#d7dadd', fontWeight: 700, border: 'none', fontSize: '0.8rem', py: 0.5, whiteSpace: 'nowrap' }}>
+                    {station.StationNameEnglish} ({station.StationCode})
                   </TableCell>
-                  <TableCell
-                    sx={{
-                      color: '#C0C0C0',
-                      borderBottom: '2px solid #90CAF9',
-                      py: 0.5,
-                      px: 1,
-                      fontSize: '0.85rem',
-                    }}
-                  >
-                    Hindi Name
+                  <TableCell sx={{ color: '#C0C0C0', border: 'none', fontSize: '0.8rem', py: 0.5 }}>
+                    {station.StationNameHindi}
                   </TableCell>
-                  <TableCell
-                    sx={{
-                      color: '#A0A0A0',
-                      borderBottom: '2px solid #90CAF9',
-                      py: 0.5,
-                      px: 1,
-                      fontSize: '0.85rem',
-                    }}
-                  >
-                    Platforms
+                  <TableCell sx={{ color: '#A0A0A0', border: 'none', fontSize: '0.8rem', py: 0.5 }}>
+                    {station.NumberOfPlatforms}
                   </TableCell>
-                  <TableCell
-                    sx={{
-                      color: '#A0A0A0',
-                      borderBottom: '2px solid #90CAF9',
-                      py: 0.5,
-                      px: 1,
-                      fontSize: '0.85rem',
-                    }}
-                  >
-                    Spl Platforms
+                  <TableCell sx={{ color: '#A0A0A0', border: 'none', fontSize: '0.8rem', py: 0.5 }}>
+                    {station.NumberOfSplPlatforms}
                   </TableCell>
                 </TableRow>
-              </TableHead>
-              <TableBody>
-                {stations.map((station) => (
-                  <TableRow key={station.StationCode}>
-                    <TableCell
-                      sx={{
-                        color: '#d7dadd',
-                        fontWeight: 700,
-                        border: 'none',
-                        py: 0.5,
-                        px: 1,
-                        fontSize: '0.85rem',
-                        whiteSpace: 'nowrap',
-                      }}
-                    >
-                      {station.StationNameEnglish} ({station.StationCode})
-                    </TableCell>
-                    <TableCell
-                      sx={{
-                        color: '#C0C0C0',
-                        border: 'none',
-                        py: 0.5,
-                        px: 1,
-                        fontSize: '0.85rem',
-                        whiteSpace: 'normal',
-                      }}
-                    >
-                      {station.StationNameHindi}
-                    </TableCell>
-                    <TableCell
-                      sx={{
-                        color: '#A0A0A0',
-                        border: 'none',
-                        py: 0.5,
-                        px: 1,
-                        fontSize: '0.85rem',
-                        whiteSpace: 'nowrap',
-                      }}
-                    >
-                      {station.NumberOfPlatforms}
-                    </TableCell>
-                    <TableCell
-                      sx={{
-                        color: '#A0A0A0',
-                        border: 'none',
-                        py: 0.5,
-                        px: 1,
-                        fontSize: '0.85rem',
-                        whiteSpace: 'nowrap',
-                      }}
-                    >
-                      {station.NumberOfSplPlatforms}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </Card>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
       )}
     </Box>
   );

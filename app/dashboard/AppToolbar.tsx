@@ -177,8 +177,9 @@ const AppToolbar: React.FC<AppToolbarProps> = ({ handleDrawerToggle }) => {
             onClick={handleProfileClick}
             sx={{
               '&:hover': { bgcolor: 'rgba(0, 212, 184, 0.15)' },
-              fontSize: '0.75rem',
-              py: 0.5,
+              fontSize: '1',
+               py: 1,
+              px:1.1,
             }}
           >
             Profile
@@ -187,8 +188,10 @@ const AppToolbar: React.FC<AppToolbarProps> = ({ handleDrawerToggle }) => {
             onClick={handleLogout}
             sx={{
               '&:hover': { bgcolor: 'rgba(0, 212, 184, 0.15)' },
-              fontSize: '0.75rem',
-              py: 0.5,
+              fontSize: '1rem',
+              py: 1.1,
+              px:1.1,
+
             }}
           >
             Logout

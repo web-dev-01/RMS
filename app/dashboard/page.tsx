@@ -57,14 +57,14 @@ export default function Dashboard() {
           p: 0,
           px:0,
           pt:0,
-          mt: 0,
+          mt:0,
         }}
       >
         <StationInfo />
       </Card>
 
       {/* Active Trains */}
-      <Box sx={{ mt: 2 }}>
+      <Box sx={{ mt: 1 }}>
         <ActiveTrains
           trains={trains}
           loading={loadingTrains}
@@ -76,7 +76,7 @@ export default function Dashboard() {
     {/* Row 2: Platforms & Devices + Event Logs (Reduced Height, Same Width) */}
 <Box
   sx={{
-    mt: 2,
+    mt: 1,
     display: 'flex',
     width: '100%',
     gap: 2,

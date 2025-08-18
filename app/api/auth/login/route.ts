@@ -6,6 +6,15 @@ import jwt from 'jsonwebtoken';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret';
 
+interface IUser {
+  _id: string;
+  email: string;
+  password: string;
+  fullName?: string;
+  phoneNumber?: string;
+  role?: string;
+}
+
 export async function POST(request: Request) {
   try {
     await dbConnect();
@@ -14,10 +23,15 @@ export async function POST(request: Request) {
     const { email, password } = body;
 
     if (!email || !password) {
-      return NextResponse.json({ success: false, message: 'Please provide email and password' }, { status: 400 });
+      return NextResponse.json(
+        { success: false, message: 'Please provide email and password' },
+        { status: 400 }
+      );
     }
 
-    const user = await User.findOne({ email: email.toLowerCase() }).lean();
+    // Use lean() and cast to IUser
+    const user = (await User.findOne({ email: email.toLowerCase() }).lean()) as IUser | null;
+
     if (!user) {
       return NextResponse.json({ success: false, message: 'Invalid credentials' }, { status: 401 });
     }

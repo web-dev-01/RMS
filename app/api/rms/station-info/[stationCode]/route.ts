@@ -7,14 +7,15 @@ const checkApiKey = (req: NextRequest) => req.headers.get('x-api-key') === proce
 // ✅ PUT: Update station by stationCode
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { stationCode: string } }
+  { params }: { params: Promise<{ stationCode: string }> }
 ) {
   try {
     if (!checkApiKey(req)) return NextResponse.json({ success: false, message: 'Invalid API key' }, { status: 401 });
 
     await dbConnect();
 
-    const stationCode = params.stationCode;
+    // Await params in newer Next.js versions
+    const { stationCode } = await params;
     if (!stationCode) return NextResponse.json({ success: false, message: 'stationCode is required' }, { status: 400 });
 
     const body = await req.json();
@@ -37,14 +38,15 @@ export async function PUT(
 // ✅ DELETE: Remove station by stationCode
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { stationCode: string } }
+  { params }: { params: Promise<{ stationCode: string }> }
 ) {
   try {
     if (!checkApiKey(req)) return NextResponse.json({ success: false, message: 'Invalid API key' }, { status: 401 });
 
     await dbConnect();
 
-    const stationCode = params.stationCode;
+    // Await params in newer Next.js versions
+    const { stationCode } = await params;
     if (!stationCode) return NextResponse.json({ success: false, message: 'stationCode is required' }, { status: 400 });
 
     const deletedStation = await Station.findOneAndDelete({ StationCode: stationCode.toUpperCase() }).lean();

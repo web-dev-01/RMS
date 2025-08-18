@@ -1,5 +1,3 @@
-// app/api/rms/station-info/[stationCode]/route.ts
-
 import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/dbConnect';
 import { Station } from '@/models/station';
@@ -9,7 +7,7 @@ const checkApiKey = (req: NextRequest) => req.headers.get('x-api-key') === proce
 // PUT: Update station by stationCode
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { stationCode: string } }
+  context: { params: { stationCode: string } }
 ) {
   try {
     if (!checkApiKey(req)) {
@@ -21,7 +19,7 @@ export async function PUT(
 
     await dbConnect();
 
-    const { stationCode } = params;
+    const { stationCode } = context.params;
     if (!stationCode) {
       return NextResponse.json(
         { success: false, message: 'stationCode is required' },
@@ -57,7 +55,7 @@ export async function PUT(
 // DELETE: Remove station by stationCode
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { stationCode: string } }
+  context: { params: { stationCode: string } }
 ) {
   try {
     if (!checkApiKey(req)) {
@@ -69,7 +67,7 @@ export async function DELETE(
 
     await dbConnect();
 
-    const { stationCode } = params;
+    const { stationCode } = context.params;
     if (!stationCode) {
       return NextResponse.json(
         { success: false, message: 'stationCode is required' },

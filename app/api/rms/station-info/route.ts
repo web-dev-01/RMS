@@ -1,9 +1,8 @@
-// app/api/rms/station-info/[stationCode]/route.ts  (handles PUT, DELETE)
-// app/api/rms/station-info/route.ts (handles GET all, POST create)
-
+// app/api/rms/station-info/[stationCode]/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/dbConnect';
 import { Station } from '@/models/station';
+import mongoose from 'mongoose';
 
 // Simple API key check helper
 const checkApiKey = (req: NextRequest) => {
@@ -11,54 +10,64 @@ const checkApiKey = (req: NextRequest) => {
   return apiKey === process.env.API_KEY;
 };
 
-// --- GET all stations + POST new station ---
-// File: app/api/rms/station-info/route.ts
-
-export async function GET() {
+// --- PUT: Update a station ---
+export async function PUT(req: NextRequest, { params }: { params: { stationCode: string } }) {
   try {
-    await dbConnect();
-    const stations = await Station.find({}).lean();
-    return NextResponse.json({ success: true, data: stations }, { status: 200 });
-  } catch (err: any) {
-    console.error('GET stations error:', err);
-    return NextResponse.json({ success: false, message: 'Server error' }, { status: 500 });
-  }
-}
+    if (!checkApiKey(req)) {
+      return NextResponse.json({ success: false, message: 'Invalid API key' }, { status: 401 });
+    }
 
-export async function POST(req: NextRequest) {
-  try {
-    if (!checkApiKey(req)) return NextResponse.json({ success: false, message: 'Invalid API key' }, { status: 401 });
+    const { stationCode } = params;
+    if (!stationCode) {
+      return NextResponse.json({ success: false, message: 'StationCode param is required' }, { status: 400 });
+    }
 
     await dbConnect();
     const body = await req.json();
 
-    // Validation of required fields:
-    const requiredFields = [
-      'StationCode', 'StationNameEnglish', 'RegionalLanguage', 'StationNameHindi',
-      'StationNameRegional', 'Latitude', 'Longitude', 'Altitude',
-      'NumberOfPlatforms', 'NumberOfSplPlatforms', 'NumberOfStationEntrances', 'NumberOfPlatformBridges'
-    ];
-    for (const field of requiredFields) {
-      if (body[field] === undefined || body[field] === null) {
-        return NextResponse.json({ success: false, message: `${field} is required` }, { status: 400 });
-      }
+    const updatedStation = await Station.findOneAndUpdate(
+      { StationCode: stationCode.toUpperCase() },
+      { $set: body },
+      { new: true, runValidators: true }
+    ).lean();
+
+    if (!updatedStation) {
+      return NextResponse.json({ success: false, message: 'Station not found' }, { status: 404 });
     }
 
-    // Check uniqueness StationCode:
-    const exists = await Station.findOne({ StationCode: body.StationCode.toUpperCase() });
-    if (exists) {
-      return NextResponse.json({ success: false, message: 'Station with this code already exists' }, { status: 409 });
-    }
-
-    // Create new station
-    const newStation = await Station.create({
-      ...body,
-      StationCode: body.StationCode.toUpperCase()
-    });
-
-    return NextResponse.json({ success: true, data: newStation }, { status: 201 });
+    return NextResponse.json({ success: true, data: updatedStation });
   } catch (err: any) {
-    console.error('POST station error:', err);
+    console.error('PUT station error:', err);
+    if (err instanceof mongoose.Error.ValidationError) {
+      return NextResponse.json({ success: false, message: err.message }, { status: 400 });
+    }
+    return NextResponse.json({ success: false, message: 'Server error' }, { status: 500 });
+  }
+}
+
+// --- DELETE: Remove a station ---
+export async function DELETE(req: NextRequest, { params }: { params: { stationCode: string } }) {
+  try {
+    if (!checkApiKey(req)) {
+      return NextResponse.json({ success: false, message: 'Invalid API key' }, { status: 401 });
+    }
+
+    const { stationCode } = params;
+    if (!stationCode) {
+      return NextResponse.json({ success: false, message: 'StationCode param is required' }, { status: 400 });
+    }
+
+    await dbConnect();
+
+    const deletedStation = await Station.findOneAndDelete({ StationCode: stationCode.toUpperCase() }).lean();
+
+    if (!deletedStation) {
+      return NextResponse.json({ success: false, message: 'Station not found' }, { status: 404 });
+    }
+
+    return NextResponse.json({ success: true, message: 'Station deleted successfully' });
+  } catch (err: any) {
+    console.error('DELETE station error:', err);
     return NextResponse.json({ success: false, message: 'Server error' }, { status: 500 });
   }
 }

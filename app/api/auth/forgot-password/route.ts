@@ -1,10 +1,9 @@
-// app/api/auth/forgot-password/route.js
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import User from "@/models/User";
 import connectToDB from "@/lib/dbConnect";
 import crypto from "crypto";
 
-export async function POST(req) {
+export async function POST(req: NextRequest) {
   try {
     await connectToDB();
     const { email } = await req.json();
@@ -23,7 +22,6 @@ export async function POST(req) {
     user.resetPasswordExpires = Date.now() + 15 * 60 * 1000; // 15 minutes expiry
     await user.save();
 
-    // Here you would send resetCode via email using your email service
     console.log(`Reset code for ${email}: ${resetCode}`);
 
     return NextResponse.json({ success: true, message: "Reset code sent to email" });

@@ -1,10 +1,34 @@
 // app/api/rms/active-trains/route.ts
-
 import { NextRequest, NextResponse } from 'next/server';
 import mongoose from 'mongoose';
 import dbConnect from '@/lib/dbConnect';
 import { Train } from '@/models/trainModel';
 import { Station } from '@/models/station';
+
+interface ITrain {
+  _id: mongoose.Types.ObjectId;
+  TrainNumber: string;
+  TrainNameEnglish: string;
+  TrainNameHindi: string;
+  Ref: string;
+  SrcCode: string;
+  SrcNameEnglish: string;
+  SrcNameHindi: string;
+  DestCode: string;
+  DestNameEnglish: string;
+  DestNameHindi: string;
+  STA: string;
+  STD: string;
+  LateBy: string;
+  ETA: string;
+  ETD?: string;
+  PFNo: string;
+  Status?: string;
+  TypeAorD: string;
+  CoachList: any[];
+  lastUpdated: Date;
+  [key: string]: any;
+}
 
 // Validate API key
 const validateApiKey = (req: NextRequest) => req.headers.get('x-api-key') === process.env.API_KEY;
@@ -28,7 +52,6 @@ export async function GET(req: NextRequest) {
 
     await dbConnect();
 
-    // Delete old/completed trains
     await Train.deleteMany({
       $or: [
         { Status: { $in: ['Arrived', 'Departed'] } },
@@ -38,7 +61,7 @@ export async function GET(req: NextRequest) {
 
     const trains = await Train.find({ Status: { $in: ['On Time', 'Running Late', 'Arriving Soon'] } })
       .sort({ STA: 1 })
-      .lean();
+      .lean<ITrain>();
 
     if (!trains.length)
       return NextResponse.json({ success: false, message: 'No active trains found' }, { status: 404 });
@@ -62,7 +85,7 @@ export async function POST(req: NextRequest) {
     if (!trains.length)
       return NextResponse.json({ success: false, message: 'At least one train is required' }, { status: 400 });
 
-    const createdTrains = [];
+    const createdTrains: ITrain[] = [];
 
     for (const trainData of trains) {
       if (!trainData.StationCode)
@@ -72,7 +95,6 @@ export async function POST(req: NextRequest) {
       if (!station)
         return NextResponse.json({ success: false, message: `No station found for code ${trainData.StationCode}` }, { status: 400 });
 
-      // Auto-fill source station
       trainData.SrcCode = station.StationCode;
       trainData.SrcNameEnglish = station.StationNameEnglish;
       trainData.SrcNameHindi = station.StationNameHindi;
@@ -92,7 +114,7 @@ export async function POST(req: NextRequest) {
 
       const train = new Train(trainData);
       const saved = await train.save();
-      createdTrains.push(saved);
+      createdTrains.push(saved.toObject());
     }
 
     return NextResponse.json({ success: true, data: createdTrains }, { status: 201 });
@@ -109,7 +131,6 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ success: false, message: 'Invalid API key' }, { status: 401 });
 
     await dbConnect();
-
     const body = await req.json();
     const { id, ...updateData } = Array.isArray(body) ? body[0] : body;
 
@@ -118,7 +139,7 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ success: false, message: 'Invalid train ID format' }, { status: 400 });
 
     updateData.lastUpdated = new Date();
-    const updatedTrain = await Train.findByIdAndUpdate(id, { $set: updateData }, { new: true, runValidators: true }).lean();
+    const updatedTrain = await Train.findByIdAndUpdate(id, { $set: updateData }, { new: true, runValidators: true }).lean<ITrain>();
 
     if (!updatedTrain) return NextResponse.json({ success: false, message: 'Train not found' }, { status: 404 });
 
@@ -141,13 +162,12 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ success: false, message: 'Invalid API key' }, { status: 401 });
 
     await dbConnect();
-
     const id = new URL(req.url).searchParams.get('id');
     if (!id) return NextResponse.json({ success: false, message: 'Train ID required' }, { status: 400 });
     if (!mongoose.Types.ObjectId.isValid(id))
       return NextResponse.json({ success: false, message: 'Invalid train ID format' }, { status: 400 });
 
-    const deleted = await Train.findByIdAndDelete(id).lean();
+    const deleted = await Train.findByIdAndDelete(id).lean<ITrain>();
     if (!deleted) return NextResponse.json({ success: false, message: 'Train not found' }, { status: 404 });
 
     return NextResponse.json({ success: true, message: 'Train deleted' });

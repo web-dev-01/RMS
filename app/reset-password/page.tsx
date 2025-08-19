@@ -1,8 +1,10 @@
 "use client";
-import { useState } from "react";
+
+import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
-export default function ResetPasswordPage() {
+// Create a component to handle the useSearchParams logic
+function ResetPasswordContent() {
   const params = useSearchParams();
   const email = params.get("email");
   const code = params.get("code");
@@ -12,7 +14,7 @@ export default function ResetPasswordPage() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  const handleReset = async (e) => {
+  const handleReset = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
     setMessage("");
@@ -41,8 +43,21 @@ export default function ResetPasswordPage() {
     }
   };
 
+  const handleGoToLogin = () => {
+    router.push("/login");
+  };
+
   return (
-    <div style={{ maxWidth: 400, margin: "50px auto", padding: 20, textAlign: "center", border: "1px solid #ccc", borderRadius: 8 }}>
+    <div
+      style={{
+        maxWidth: 400,
+        margin: "50px auto",
+        padding: 20,
+        textAlign: "center",
+        border: "1px solid #ccc",
+        borderRadius: 8,
+      }}
+    >
       <img src="/logo.png" alt="Logo" style={{ width: 80, marginBottom: 20 }} />
       <h1>Reset Password</h1>
       <form onSubmit={handleReset} style={{ marginTop: 20 }}>
@@ -69,15 +84,16 @@ export default function ResetPasswordPage() {
             background: "#0070f3",
             color: "white",
             border: "none",
-            cursor: "pointer",
+            cursor: loading ? "not-allowed" : "pointer",
             borderRadius: 4,
+            opacity: loading ? 0.6 : 1,
           }}
         >
           {loading ? "Resetting..." : "Reset Password"}
         </button>
       </form>
       <button
-        onClick={() => router.push("/login")}
+        onClick={handleGoToLogin}
         style={{
           marginTop: 15,
           padding: "10px 20px",
@@ -90,7 +106,38 @@ export default function ResetPasswordPage() {
       >
         Go to Login
       </button>
-      {message && <p style={{ color: message.includes("successfully") ? "green" : "red", marginTop: 10 }}>{message}</p>}
+      {message && (
+        <p
+          style={{
+            color: message.includes("successfully") ? "green" : "red",
+            marginTop: 10,
+          }}
+        >
+          {message}
+        </p>
+      )}
     </div>
+  );
+}
+
+// Main page component with Suspense boundary
+export default function ResetPasswordPage() {
+  return (
+    <Suspense
+      fallback={
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            minHeight: "100vh",
+          }}
+        >
+          <p>Loading...</p>
+        </div>
+      }
+    >
+      <ResetPasswordContent />
+    </Suspense>
   );
 }

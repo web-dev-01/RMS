@@ -7,7 +7,6 @@ import {
   Container,
   Typography,
   Stack,
-  Grid,
   Divider,
   SvgIcon,
   Accordion,
@@ -207,19 +206,25 @@ export default function LandingPage() {
           <List sx={{ flexGrow: 1 }}>
             {navLinks.map((link, i) => (
               <ListItem
-                button
                 key={i}
-                component={link.href ? 'a' : 'button'}
-                href={link.href}
-                onClick={() => {
-                  if (link.onClick) link.onClick();
-                  else setDrawerOpen(false);
-                }}
                 sx={{
                   color: primaryColor,
                   fontWeight: 600,
                   fontSize: '1.15rem',
                   py: 1.5,
+                  cursor: 'pointer',
+                  '&:hover': {
+                    backgroundColor: 'rgba(0, 237, 100, 0.1)',
+                  },
+                }}
+                onClick={() => {
+                  if (link.onClick) link.onClick();
+                  else {
+                    if (link.href) {
+                      window.location.href = link.href;
+                    }
+                    setDrawerOpen(false);
+                  }
                 }}
               >
                 <ListItemText primary={link.label} />
@@ -418,9 +423,19 @@ export default function LandingPage() {
             Key Features of IPIPS
           </Typography>
 
-          <Grid container spacing={6} justifyContent="center">
+          <Box sx={{ 
+            display: 'flex', 
+            flexWrap: 'wrap', 
+            gap: 6, 
+            justifyContent: 'center' 
+          }}>
             {/* Feature 1 */}
-            <Grid item xs={12} sm={6} md={4} textAlign="center">
+            <Box sx={{ 
+              flex: { xs: '1 1 100%', sm: '1 1 45%', md: '1 1 30%' }, 
+              textAlign: 'center',
+              minWidth: 250,
+              maxWidth: 350
+            }}>
               <FeatureIcon icon={<Train />} />
               <Typography variant="h6" fontWeight={600} mt={3} mb={1}>
                 Real-time Train Information
@@ -428,10 +443,15 @@ export default function LandingPage() {
               <Typography variant="body1" color="text.secondary" maxWidth={300} mx="auto">
                 Live updates on train schedules, delays, platform changes, and arrival/departure times for enhanced passenger experience.
               </Typography>
-            </Grid>
+            </Box>
 
             {/* Feature 2 */}
-            <Grid item xs={12} sm={6} md={4} textAlign="center">
+            <Box sx={{ 
+              flex: { xs: '1 1 100%', sm: '1 1 45%', md: '1 1 30%' }, 
+              textAlign: 'center',
+              minWidth: 250,
+              maxWidth: 350
+            }}>
               <FeatureIcon icon={<NetworkCheck />} />
               <Typography variant="h6" fontWeight={600} mt={3} mb={1}>
                 IP-based Integration
@@ -439,10 +459,15 @@ export default function LandingPage() {
               <Typography variant="body1" color="text.secondary" maxWidth={300} mx="auto">
                 Seamless integration across multiple platforms using IP-based communication for reliable and scalable operations.
               </Typography>
-            </Grid>
+            </Box>
 
             {/* Feature 3 */}
-            <Grid item xs={12} sm={6} md={4} textAlign="center">
+            <Box sx={{ 
+              flex: { xs: '1 1 100%', sm: '1 1 45%', md: '1 1 30%' }, 
+              textAlign: 'center',
+              minWidth: 250,
+              maxWidth: 350
+            }}>
               <FeatureIcon icon={<Analytics />} />
               <Typography variant="h6" fontWeight={600} mt={3} mb={1}>
                 Advanced Analytics
@@ -450,8 +475,8 @@ export default function LandingPage() {
               <Typography variant="body1" color="text.secondary" maxWidth={300} mx="auto">
                 Comprehensive reporting and analytics to optimize railway operations and improve passenger satisfaction.
               </Typography>
-            </Grid>
-          </Grid>
+            </Box>
+          </Box>
         </Container>
 
         {/* Additional System Capabilities */}
@@ -466,9 +491,19 @@ export default function LandingPage() {
             Additional System Capabilities
           </Typography>
 
-          <Grid container spacing={6} justifyContent="center">
+          <Box sx={{ 
+            display: 'flex', 
+            flexWrap: 'wrap', 
+            gap: 6, 
+            justifyContent: 'center' 
+          }}>
             {/* Capability 1 */}
-            <Grid item xs={12} sm={6} md={4} textAlign="center">
+            <Box sx={{ 
+              flex: { xs: '1 1 100%', sm: '1 1 45%', md: '1 1 30%' }, 
+              textAlign: 'center',
+              minWidth: 250,
+              maxWidth: 350
+            }}>
               <FeatureIcon icon={<Security />} />
               <Typography variant="h6" fontWeight={600} mt={3} mb={1}>
                 Secure Operations
@@ -476,10 +511,15 @@ export default function LandingPage() {
               <Typography variant="body1" color="text.secondary" maxWidth={300} mx="auto">
                 Enterprise-grade security ensuring data protection and system reliability for critical railway infrastructure.
               </Typography>
-            </Grid>
+            </Box>
 
             {/* Capability 2 */}
-            <Grid item xs={12} sm={6} md={4} textAlign="center">
+            <Box sx={{ 
+              flex: { xs: '1 1 100%', sm: '1 1 45%', md: '1 1 30%' }, 
+              textAlign: 'center',
+              minWidth: 250,
+              maxWidth: 350
+            }}>
               <FeatureIcon icon={<Speed />} />
               <Typography variant="h6" fontWeight={600} mt={3} mb={1}>
                 High Performance
@@ -487,10 +527,15 @@ export default function LandingPage() {
               <Typography variant="body1" color="text.secondary" maxWidth={300} mx="auto">
                 Optimized for high-traffic environments with minimal latency and maximum uptime for uninterrupted service.
               </Typography>
-            </Grid>
+            </Box>
 
             {/* Capability 3 */}
-            <Grid item xs={12} sm={6} md={4} textAlign="center">
+            <Box sx={{ 
+              flex: { xs: '1 1 100%', sm: '1 1 45%', md: '1 1 30%' }, 
+              textAlign: 'center',
+              minWidth: 250,
+              maxWidth: 350
+            }}>
               <FeatureIcon icon={<Build />} />
               <Typography variant="h6" fontWeight={600} mt={3} mb={1}>
                 Easy Management
@@ -498,8 +543,8 @@ export default function LandingPage() {
               <Typography variant="body1" color="text.secondary" maxWidth={300} mx="auto">
                 Intuitive administration interface for system configuration, monitoring, and maintenance operations.
               </Typography>
-            </Grid>
-          </Grid>
+            </Box>
+          </Box>
         </Container>
 
         {/* Benefits Section */}
@@ -514,7 +559,12 @@ export default function LandingPage() {
             System Benefits
           </Typography>
 
-          <Grid container spacing={4} justifyContent="center">
+          <Box sx={{ 
+            display: 'flex', 
+            flexWrap: 'wrap', 
+            gap: 4, 
+            justifyContent: 'center' 
+          }}>
             {[
               'Centralized passenger information management',
               'Multi-platform display integration',
@@ -523,12 +573,10 @@ export default function LandingPage() {
               'Comprehensive system monitoring',
               'User-friendly administrative interface',
             ].map((item, index) => (
-              <Grid
+              <Box
                 key={index}
-                item
-                xs={12}
-                sm={6}
                 sx={{
+                  flex: { xs: '1 1 100%', sm: '1 1 45%' },
                   display: 'flex',
                   alignItems: 'center',
                   gap: 1.5,
@@ -540,9 +588,9 @@ export default function LandingPage() {
               >
                 <CheckCircle sx={{ color: primaryColor, mr: 1 }} />
                 {item}
-              </Grid>
+              </Box>
             ))}
-          </Grid>
+          </Box>
         </Container>
 
         {/* FAQ Section */}
@@ -621,8 +669,14 @@ export default function LandingPage() {
         }}
       >
         <Container maxWidth="lg">
-          <Grid container spacing={4} justifyContent="space-between" alignItems="center">
-            <Grid item xs={12} md={6}>
+          <Box sx={{ 
+            display: 'flex', 
+            flexDirection: { xs: 'column', md: 'row' }, 
+            gap: 4, 
+            justifyContent: 'space-between', 
+            alignItems: { xs: 'flex-start', md: 'center' } 
+          }}>
+            <Box sx={{ flex: { xs: '1 1 100%', md: '1 1 50%' } }}>
               <Typography
                 variant="h6"
                 fontWeight={700}
@@ -638,9 +692,12 @@ export default function LandingPage() {
                 RMS for IP based Integrated Passenger Information System.<br />
                 A smart solution for real-time transit monitoring, efficiency, and connectivity.
               </Typography>
-            </Grid>
+            </Box>
 
-            <Grid item xs={12} md={6} textAlign={{ xs: 'left', md: 'right' }}>
+            <Box sx={{ 
+              flex: { xs: '1 1 100%', md: '1 1 50%' }, 
+              textAlign: { xs: 'left', md: 'right' } 
+            }}>
               <Typography
                 variant="h6"
                 fontWeight={700}
@@ -655,7 +712,12 @@ export default function LandingPage() {
                 justifyContent={{ xs: 'flex-start', md: 'flex-end' }}
                 mt={1}
               >
-                {[Facebook, Twitter, Instagram, LinkedIn].map((Icon, i) => (
+                {[
+                  { Icon: Facebook, label: 'Facebook' },
+                  { Icon: Twitter, label: 'Twitter' },
+                  { Icon: Instagram, label: 'Instagram' },
+                  { Icon: LinkedIn, label: 'LinkedIn' },
+                ].map(({ Icon, label }, i) => (
                   <IconButton
                     key={i}
                     sx={{
@@ -666,14 +728,14 @@ export default function LandingPage() {
                         opacity: 0.8,
                       },
                     }}
-                    aria-label={`link to ${Icon.displayName || 'social media'}`}
+                    aria-label={`link to ${label}`}
                   >
                     <Icon />
                   </IconButton>
                 ))}
               </Stack>
-            </Grid>
-          </Grid>
+            </Box>
+          </Box>
 
           <Box mt={{ xs: 5, md: 7 }} textAlign="center">
             <Typography

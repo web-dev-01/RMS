@@ -9,7 +9,7 @@ export default function ForgotPasswordPage() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
@@ -35,22 +35,24 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <div style={{
-      maxWidth: 400,
-      margin: "50px auto",
-      padding: 20,
-      border: "1px solid #ddd",
-      borderRadius: 10,
-      boxShadow: "0 4px 10px rgba(0,0,0,0.1)",
-      background: "#0A0F19",
-      textAlign: "center"
-    }}>
-      <Image 
-        src="/logo.png" 
-        alt="Logo" 
-        width={100} 
-        height={100} 
-        style={{ marginBottom: 20 }} 
+    <div
+      style={{
+        maxWidth: 400,
+        margin: "50px auto",
+        padding: 20,
+        border: "1px solid #ddd",
+        borderRadius: 10,
+        boxShadow: "0 4px 10px rgba(0,0,0,0.1)",
+        background: "#0A0F19",
+        textAlign: "center",
+      }}
+    >
+      <Image
+        src="/logo.png"
+        alt="Logo"
+        width={100}
+        height={100}
+        style={{ marginBottom: 20 }}
       />
       <h1 style={{ marginBottom: 20 }}>Forgot Password</h1>
 
@@ -68,7 +70,7 @@ export default function ForgotPasswordPage() {
             padding: 10,
             borderRadius: 6,
             border: "1px solid #ccc",
-            fontSize: 14
+            fontSize: 14,
           }}
         />
         <button
@@ -82,7 +84,7 @@ export default function ForgotPasswordPage() {
             border: "none",
             borderRadius: 6,
             fontSize: 16,
-            cursor: "pointer"
+            cursor: "pointer",
           }}
         >
           {loading ? "Sending..." : "Send Reset Code"}
@@ -90,10 +92,12 @@ export default function ForgotPasswordPage() {
       </form>
 
       {message && (
-        <p style={{
-          marginTop: 15,
-          color: message.toLowerCase().includes("success") ? "green" : "red"
-        }}>
+        <p
+          style={{
+            marginTop: 15,
+            color: message.toLowerCase().includes("success") ? "green" : "red",
+          }}
+        >
           {message}
         </p>
       )}

@@ -2,16 +2,20 @@ import { NextResponse } from 'next/server';
 import User from '@/models/User';
 import connectToDB from '@/lib/dbConnect';
 
-export async function POST(req) {
+interface IVerifyEmailBody {
+  email: string;
+  code: string;
+}
+
+export async function POST(req: Request) {
   try {
     await connectToDB();
 
-    const body = await req.json();
+    const body: IVerifyEmailBody = await req.json();
     let { email, code } = body;
 
-    // Trim and normalize
-    email = email?.toString().trim().toLowerCase();
-    code = code?.toString().trim();
+    email = email?.trim().toLowerCase();
+    code = code?.trim();
 
     if (!email || !code) {
       return NextResponse.json(
@@ -20,7 +24,6 @@ export async function POST(req) {
       );
     }
 
-    // Find user in MongoDB
     const user = await User.findOne({ email });
 
     if (!user) {
@@ -36,15 +39,13 @@ export async function POST(req) {
       );
     }
 
-    // Compare stored and input codes
-    if (user.verificationCode?.toString().trim() !== code) {
+    if (user.verificationCode?.trim() !== code) {
       return NextResponse.json(
         { success: false, message: 'Invalid verification code.' },
         { status: 400 }
       );
     }
 
-    // Update user verification
     user.isVerified = true;
     user.verificationCode = null;
     await user.save();
@@ -54,7 +55,7 @@ export async function POST(req) {
       message: 'Email verified successfully.'
     });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Verify Email Error:', error);
     return NextResponse.json(
       { success: false, message: 'Server error', error: error.message },

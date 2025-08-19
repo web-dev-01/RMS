@@ -43,10 +43,22 @@ interface Train {
   CoachList: string[];
 }
 
-export default function ActiveTrains() {
+interface ActiveTrainsProps {
+  trains?: Train[];
+  loading?: boolean;
+  error?: string | null;
+  stationCode?: string;
+}
+
+export default function ActiveTrains({ 
+  trains: propTrains, 
+  loading: propLoading, 
+  error: propError, 
+  stationCode: propStationCode 
+}: ActiveTrainsProps) {
   const [trains, setTrains] = useState<Train[]>([]);
   const [loading, setLoading] = useState(true);
-  const stationCode = 'NDLS'; // TODO: make dynamic later
+  const stationCode = propStationCode || 'NDLS'; // Use prop or default
   const router = useRouter();
 
   const fetchTrains = async () => {
@@ -74,8 +86,18 @@ export default function ActiveTrains() {
   };
 
   useEffect(() => {
-    fetchTrains();
-  }, [stationCode]);
+    // If props are provided, use them instead of fetching
+    if (propTrains !== undefined && propLoading !== undefined) {
+      setTrains(propTrains);
+      setLoading(propLoading);
+    } else {
+      fetchTrains();
+    }
+  }, [stationCode, propTrains, propLoading]);
+
+  // Use prop values if provided, otherwise use local state
+  const displayTrains = propTrains !== undefined ? propTrains : trains;
+  const displayLoading = propLoading !== undefined ? propLoading : loading;
 
   return (
     <Card
@@ -106,7 +128,7 @@ export default function ActiveTrains() {
               aria-label="refresh"
               onClick={fetchTrains}
               sx={{ color: '#90CAF9' }}
-              disabled={loading}
+              disabled={displayLoading}
             >
               <RefreshIcon />
             </IconButton>
@@ -123,15 +145,15 @@ export default function ActiveTrains() {
         sx={{ pb: 1 }}
       />
 
-      {loading ? (
+      {displayLoading ? (
         <Box sx={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
           <CircularProgress size={28} sx={{ color: '#90CAF9' }} />
         </Box>
-      ) : trains.length === 0 ? (
+      ) : displayTrains.length === 0 ? (
         <Box
           sx={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', color: '#888' }}
         >
-          No active trains for {stationCode}
+          {propError || `No active trains for ${stationCode}`}
         </Box>
       ) : (
         <TableContainer
@@ -173,7 +195,7 @@ export default function ActiveTrains() {
               </TableRow>
             </TableHead>
             <TableBody>
-              {trains.map((train) => (
+              {displayTrains.map((train) => (
                 <TableRow key={train._id} hover>
                   <TableCell sx={{ color: '#E0E0E0', overflowWrap: 'break-word' }}>{train.TrainNumber}</TableCell>
                   <TableCell sx={{ color: '#E0E0E0', overflowWrap: 'break-word' }}>{train.TrainNameEnglish}</TableCell>

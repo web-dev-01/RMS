@@ -1,3 +1,4 @@
+// models/User.ts
 import mongoose from 'mongoose';
 
 const UserSchema = new mongoose.Schema(
@@ -43,7 +44,7 @@ const UserSchema = new mongoose.Schema(
       type: String,
       default: '',
     },
-    verificationCodeExpires: { // ✅ Added expiry for security
+    verificationCodeExpires: { 
       type: Date,
       default: null,
     },
@@ -67,10 +68,10 @@ const UserSchema = new mongoose.Schema(
   }
 );
 
-// Optional: Update passwordChangedAt when password changes
+// ✅ Fix: store proper Date instead of number
 UserSchema.pre('save', function (next) {
   if (this.isModified('password')) {
-    this.passwordChangedAt = Date.now();
+    this.passwordChangedAt = new Date();
   }
   next();
 });

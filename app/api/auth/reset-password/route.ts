@@ -1,21 +1,34 @@
-// app/api/auth/reset-password/route.js
 import { NextResponse } from "next/server";
 import User from "@/models/User";
 import connectToDB from "@/lib/dbConnect";
 import bcrypt from "bcryptjs";
 
-export async function POST(req) {
+interface IResetPasswordBody {
+  email: string;
+  code: string;
+  newPassword: string;
+}
+
+export async function POST(req: Request) {
   try {
     await connectToDB();
-    const { email, code, newPassword } = await req.json();
+
+    const body: IResetPasswordBody = await req.json();
+    const { email, code, newPassword } = body;
 
     if (!email || !code || !newPassword) {
-      return NextResponse.json({ success: false, message: "All fields are required" }, { status: 400 });
+      return NextResponse.json(
+        { success: false, message: "All fields are required" },
+        { status: 400 }
+      );
     }
 
     const user = await User.findOne({ email });
     if (!user) {
-      return NextResponse.json({ success: false, message: "User not found" }, { status: 404 });
+      return NextResponse.json(
+        { success: false, message: "User not found" },
+        { status: 404 }
+      );
     }
 
     if (
@@ -23,7 +36,10 @@ export async function POST(req) {
       !user.resetPasswordExpires ||
       user.resetPasswordExpires < Date.now()
     ) {
-      return NextResponse.json({ success: false, message: "Invalid or expired reset code" }, { status: 400 });
+      return NextResponse.json(
+        { success: false, message: "Invalid or expired reset code" },
+        { status: 400 }
+      );
     }
 
     const hashedPassword = await bcrypt.hash(newPassword, 10);

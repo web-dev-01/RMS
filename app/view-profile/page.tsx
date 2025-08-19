@@ -9,7 +9,6 @@ import {
   CircularProgress,
   Alert,
   Button,
-  Grid,
   alpha,
   TextField,
   IconButton,
@@ -27,7 +26,7 @@ import axios from 'axios';
 import { usePortalTheme } from '@/components/ThemeProvider';
 
 const CropContainer = {
-  position: 'relative',
+  position: 'relative' as const,
   width: '100%',
   height: 300,
   background: '#333',
@@ -220,11 +219,11 @@ export default function ViewProfilePage() {
 
   if (loading) {
     return (
-      <Grid
-        container
-        justifyContent="center"
-        alignItems="center"
+      <Box
         sx={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
           minHeight: '100vh',
           backgroundColor: secondaryColor,
           backgroundImage: `radial-gradient(circle at top left, ${alpha(
@@ -235,17 +234,17 @@ export default function ViewProfilePage() {
         }}
       >
         <CircularProgress size={50} sx={{ color: primaryColor }} />
-      </Grid>
+      </Box>
     );
   }
 
   if (error && !isEditing) {
     return (
-      <Grid
-        container
-        justifyContent="center"
-        alignItems="center"
+      <Box
         sx={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
           minHeight: '100vh',
           backgroundColor: secondaryColor,
           backgroundImage: `radial-gradient(circle at top left, ${alpha(
@@ -256,17 +255,17 @@ export default function ViewProfilePage() {
         }}
       >
         <Alert severity="error">{error}</Alert>
-      </Grid>
+      </Box>
     );
   }
 
   return (
     <Fade in timeout={800}>
-      <Grid
-        container
-        justifyContent="center"
-        alignItems="center"
+      <Box
         sx={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
           minHeight: '100vh',
           py: 4,
           px: 2,
@@ -277,7 +276,7 @@ export default function ViewProfilePage() {
           )}, transparent 70%)`,
         }}
       >
-        <Grid item xs={12} sm={10} md={8} lg={6}>
+        <Box sx={{ width: '100%', maxWidth: { xs: '100%', sm: '83.33%', md: '66.67%', lg: '50%' } }}>
           <Paper
             sx={{
               background: cardBackground,
@@ -432,14 +431,18 @@ export default function ViewProfilePage() {
                 </>
               ) : (
                 <Box sx={{ mt: 4 }}>
-                  <Grid container spacing={3}>
-                    <Grid item xs={12}>
-                      <Typography variant="h6" sx={{ color: primaryColor, mb: 2 }}>
-                        Contact Information
-                      </Typography>
-                    </Grid>
-                    <Grid item xs={12} sm={6}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: '10px', mb: 3 }}>
+                  <Typography variant="h6" sx={{ color: primaryColor, mb: 3 }}>
+                    Contact Information
+                  </Typography>
+                  
+                  <Box sx={{ 
+                    display: 'flex', 
+                    flexDirection: { xs: 'column', sm: 'row' }, 
+                    gap: 3,
+                    mb: 3 
+                  }}>
+                    <Box sx={{ flex: 1 }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                         <EmailIcon sx={{ color: primaryColor }} />
                         <Box>
                           <Typography variant="body2" sx={{ color: '#bbb' }}>
@@ -448,9 +451,10 @@ export default function ViewProfilePage() {
                           <Typography variant="body1">{profile?.email}</Typography>
                         </Box>
                       </Box>
-                    </Grid>
-                    <Grid item xs={12} sm={6}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: '10px', mb: 3 }}>
+                    </Box>
+                    
+                    <Box sx={{ flex: 1 }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                         <PhoneIcon sx={{ color: primaryColor }} />
                         <Box>
                           <Typography variant="body2" sx={{ color: '#bbb' }}>
@@ -459,8 +463,8 @@ export default function ViewProfilePage() {
                           <Typography variant="body1">{profile?.phoneNumber}</Typography>
                         </Box>
                       </Box>
-                    </Grid>
-                  </Grid>
+                    </Box>
+                  </Box>
                   
                   {/* Additional Profile Information */}
                   <Box sx={{ mt: 4, p: 3, backgroundColor: alpha('#000', 0.3), borderRadius: 2 }}>
@@ -548,8 +552,8 @@ export default function ViewProfilePage() {
               </Alert>
             </Snackbar>
           </Paper>
-        </Grid>
-      </Grid>
+        </Box>
+      </Box>
     </Fade>
   );
 }

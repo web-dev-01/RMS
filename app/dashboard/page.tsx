@@ -73,40 +73,38 @@ export default function Dashboard() {
         />
       </Box>
 
-    {/* Row 2: Platforms & Devices + Event Logs (Reduced Height, Same Width) */}
-<Box
-  sx={{
-    mt: 1,
-    display: 'flex',
-    width: '100%',
-    gap: 2,
-    height: '400px', // reduced height from 600px to 400px
-  }}
->
-  <Card
-    sx={{
-      flexBasis: '55%',
-      height: '100%',
-      display: 'flex',
-      flexDirection: 'column',
-    }}
-  >
-    <PlatformsDevices />
-  </Card>
+      {/* Row 2: Platforms & Devices + Event Logs (Reduced Height, Same Width) */}
+      <Box
+        sx={{
+          mt: 1,
+          display: 'flex',
+          width: '100%',
+          gap: 2,
+          height: '400px', // reduced height from 600px to 400px
+        }}
+      >
+        <Card
+          sx={{
+            flexBasis: '55%',
+            height: '100%',
+            display: 'flex',
+            flexDirection: 'column',
+          }}
+        >
+          <PlatformsDevices />
+        </Card>
 
-  <Card
-    sx={{
-      flexBasis: '50%',
-      height: '100%',
-      display: 'flex',
-      flexDirection: 'column',
-    }}
-  >
-    <EventLogs />
-  </Card>
-</Box>
-
-
+        <Card
+          sx={{
+            flexBasis: '50%',
+            height: '100%',
+            display: 'flex',
+            flexDirection: 'column',
+          }}
+        >
+          <EventLogs />
+        </Card>
+      </Box>
 
       {/* Row 3: CAP Alerts */}
       <Box sx={{ mt: 2 }}>
@@ -127,8 +125,8 @@ export default function Dashboard() {
         }}
       >
         <Container maxWidth="lg">
-          <Grid container spacing={4}>
-            <Grid item xs={12} md={6}>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+            <Box sx={{ flex: '1 1 300px', minWidth: '300px' }}>
               <Typography variant="h6" fontWeight={700} gutterBottom sx={{ color: textGreen }}>
                 IP-IPIS RMS
               </Typography>
@@ -136,9 +134,9 @@ export default function Dashboard() {
                 RMS for IP based Integrated Passenger Information System.<br />
                 A smart solution for real-time transit monitoring, efficiency, and connectivity.
               </Typography>
-            </Grid>
+            </Box>
 
-            <Grid item xs={12} md={6}>
+            <Box sx={{ flex: '1 1 300px', minWidth: '300px' }}>
               <Typography variant="h6" fontWeight={700} gutterBottom sx={{ color: textGreen }}>
                 Connect with Us
               </Typography>
@@ -159,8 +157,8 @@ export default function Dashboard() {
                   </IconButton>
                 ))}
               </Stack>
-            </Grid>
-          </Grid>
+            </Box>
+          </Box>
 
           <Box mt={{ xs: 5, md: 7 }} textAlign="center">
             <Typography variant="body2" fontWeight={500} sx={{ color: textGreen }}>

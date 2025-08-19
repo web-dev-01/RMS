@@ -1,19 +1,43 @@
 'use client';
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+} from 'react';
 
-const UserContext = createContext(null);
+interface User {
+  fullName: string;
+  email: string;
+  profilePicture: string;
+}
 
-export function UserProvider({ children }) {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+interface UserContextType {
+  user: User | null;
+  loading: boolean;
+  isSidebarOpen: boolean;
+  toggleSidebar: () => void;
+}
+
+const UserContext = createContext<UserContextType | undefined>(undefined);
+
+interface UserProviderProps {
+  children: ReactNode;
+}
+
+export function UserProvider({ children }: UserProviderProps) {
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(true);
 
   const toggleSidebar = () => {
-    setIsSidebarOpen(!isSidebarOpen);
+    setIsSidebarOpen((prev) => !prev);
   };
 
   useEffect(() => {
-    const storedUser = {
+    // 🔹 Mock user data for now
+    const storedUser: User = {
       fullName: 'John Doe',
       email: 'john@example.com',
       profilePicture: '/default-avatar.png',
@@ -29,4 +53,10 @@ export function UserProvider({ children }) {
   );
 }
 
-export const useUser = () => useContext(UserContext);
+export const useUser = () => {
+  const context = useContext(UserContext);
+  if (!context) {
+    throw new Error('useUser must be used within a UserProvider');
+  }
+  return context;
+};

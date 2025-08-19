@@ -21,7 +21,6 @@ import {
   MenuItem,
   FormControl,
   InputLabel,
-  Grid,
   Chip,
   Tooltip,
   Dialog,
@@ -229,8 +228,15 @@ export default function ActiveTrainsPage() {
           </Box>
         </Box>
 
-        <Grid container spacing={2} sx={{ mb: 4 }}>
-          <Grid item xs={12} md={4}>
+        <Box 
+          sx={{ 
+            display: 'flex', 
+            flexDirection: { xs: 'column', md: 'row' }, 
+            gap: 2, 
+            mb: 4 
+          }}
+        >
+          <Box sx={{ flex: 1, minWidth: 0 }}>
             <TextField
               fullWidth
               label="Search by Train Number/Name/Route"
@@ -250,8 +256,8 @@ export default function ActiveTrainsPage() {
                 '& .MuiInputLabel-root': { color: colors.textSecondary },
               }}
             />
-          </Grid>
-          <Grid item xs={12} md={4}>
+          </Box>
+          <Box sx={{ flex: 1, minWidth: 0 }}>
             <FormControl fullWidth>
               <InputLabel sx={{ color: colors.textSecondary }}>Filter by Status</InputLabel>
               <Select
@@ -274,8 +280,8 @@ export default function ActiveTrainsPage() {
                 <MenuItem value="Departed">Departed</MenuItem>
               </Select>
             </FormControl>
-          </Grid>
-          <Grid item xs={12} md={4}>
+          </Box>
+          <Box sx={{ flex: 1, minWidth: 0 }}>
             <FormControl fullWidth>
               <InputLabel sx={{ color: colors.textSecondary }}>Filter by Type (A/D)</InputLabel>
               <Select
@@ -295,8 +301,8 @@ export default function ActiveTrainsPage() {
                 <MenuItem value="D">Departure (D)</MenuItem>
               </Select>
             </FormControl>
-          </Grid>
-        </Grid>
+          </Box>
+        </Box>
 
         {loading && (
           <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh' }}>

@@ -193,11 +193,11 @@ export default function CompleteProfilePage() {
 
   if (checking) {
     return (
-      <Grid
-        container
-        justifyContent="center"
-        alignItems="center"
+      <Box
         sx={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
           minHeight: '100vh',
           backgroundColor: secondaryColor,
           backgroundImage: `radial-gradient(circle at top left, ${alpha(
@@ -208,17 +208,17 @@ export default function CompleteProfilePage() {
         }}
       >
         <CircularProgress sx={{ color: primaryColor }} />
-      </Grid>
+      </Box>
     );
   }
 
   if (error) {
     return (
-      <Grid
-        container
-        justifyContent="center"
-        alignItems="center"
+      <Box
         sx={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
           minHeight: '100vh',
           backgroundColor: secondaryColor,
           backgroundImage: `radial-gradient(circle at top left, ${alpha(
@@ -229,16 +229,16 @@ export default function CompleteProfilePage() {
         }}
       >
         <Typography color="error">{error}</Typography>
-      </Grid>
+      </Box>
     );
   }
 
   return (
-    <Grid
-      container
-      justifyContent="center"
-      alignItems="center"
+    <Box
       sx={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
         minHeight: '100vh',
         backgroundColor: secondaryColor,
         backgroundImage: `radial-gradient(circle at top left, ${alpha(
@@ -248,7 +248,7 @@ export default function CompleteProfilePage() {
         px: 2,
       }}
     >
-      <Grid item xs={12} sm={10} md={5} lg={4}>
+      <Box sx={{ width: '100%', maxWidth: { xs: '100%', sm: '500px', md: '400px' } }}>
         <Paper
           elevation={10}
           sx={{
@@ -367,7 +367,7 @@ export default function CompleteProfilePage() {
             </Button>
           </Stack>
         </Paper>
-      </Grid>
-    </Grid>
+      </Box>
+    </Box>
   );
 }

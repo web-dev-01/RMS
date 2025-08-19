@@ -4,10 +4,11 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 export default function VerifyResetCodePage() {
-  const [email, setEmail] = useState("");
-  const [code, setCode] = useState("");
-  const [message, setMessage] = useState("");
-  const [loading, setLoading] = useState(false);
+  // 🔹 Added proper types
+  const [email, setEmail] = useState<string>("");
+  const [code, setCode] = useState<string>("");
+  const [message, setMessage] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(false);
   const router = useRouter();
 
   // Auto-fill email from localStorage if available
@@ -16,7 +17,8 @@ export default function VerifyResetCodePage() {
     if (storedEmail) setEmail(storedEmail);
   }, []);
 
-  const handleVerify = async (e) => {
+  // 🔹 Added explicit type for `e`
+  const handleVerify = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
     setMessage("");
@@ -28,7 +30,7 @@ export default function VerifyResetCodePage() {
         body: JSON.stringify({ email, code }),
       });
 
-      const data = await res.json();
+      const data: { success: boolean; message?: string } = await res.json();
 
       if (data.success) {
         router.push(
@@ -65,14 +67,16 @@ export default function VerifyResetCodePage() {
         style={{ width: 100, marginBottom: 20 }}
       />
 
-      <h1 style={{ marginBottom: 15 }}>Verify Reset Code</h1>
+      <h1 style={{ marginBottom: 15, color: "#fff" }}>Verify Reset Code</h1>
 
       <form onSubmit={handleVerify}>
         <input
           type="email"
           placeholder="Enter your email"
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+            setEmail(e.target.value)
+          }
           required
           style={{
             width: "100%",
@@ -86,7 +90,9 @@ export default function VerifyResetCodePage() {
           type="text"
           placeholder="Enter reset code"
           value={code}
-          onChange={(e) => setCode(e.target.value)}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+            setCode(e.target.value)
+          }
           required
           style={{
             width: "100%",

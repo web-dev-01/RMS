@@ -68,9 +68,15 @@ interface Station {
 type Order = 'asc' | 'desc';
 
 function descendingComparator<T>(a: T, b: T, orderBy: keyof T) {
-  if (b[orderBy] === undefined || a[orderBy] === undefined) return 0;
-  if (b[orderBy] < a[orderBy]) return -1;
-  if (b[orderBy] > a[orderBy]) return 1;
+  const aValue = a[orderBy];
+  const bValue = b[orderBy];
+  
+  // Handle null/undefined values
+  if (bValue === undefined || bValue === null) return -1;
+  if (aValue === undefined || aValue === null) return 1;
+  
+  if (bValue < aValue) return -1;
+  if (bValue > aValue) return 1;
   return 0;
 }
 

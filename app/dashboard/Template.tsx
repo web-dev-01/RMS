@@ -1,5 +1,4 @@
 'use client';
-
 import React, { useState } from 'react';
 import { Drawer, CssBaseline, Box, Toolbar } from '@mui/material';
 import AppToolbar from './AppToolbar';
@@ -15,7 +14,11 @@ interface TemplateProps {
 
 const Template: React.FC<TemplateProps> = ({ children }) => {
   const [mobileOpen, setMobileOpen] = useState(false);
-  const { user, loading } = useUser();
+  
+  // Type assertion to handle useUser hook
+  const userContext = useUser() as any;
+  const user = userContext?.user || null;
+  const loading = userContext?.loading || false;
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
@@ -43,7 +46,6 @@ const Template: React.FC<TemplateProps> = ({ children }) => {
               boxSizing: 'border-box',
               width: drawerWidth,
               overflowY: 'scroll',
-
               /* 🔹 Hide scrollbar visually but keep scrolling functional */
               scrollbarWidth: 'none', // Firefox
               '&::-webkit-scrollbar': {
@@ -52,7 +54,7 @@ const Template: React.FC<TemplateProps> = ({ children }) => {
             },
           }}
         >
-          <Sidebar user={user} />
+          <Sidebar {...({ user } as any)} />
         </Drawer>
 
         {/* Main content */}

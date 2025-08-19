@@ -7,7 +7,6 @@ import {
   TextField,
   Typography,
   Paper,
-  Grid,
   InputAdornment,
   IconButton,
   CircularProgress,
@@ -65,10 +64,7 @@ export default function LoginPage() {
   };
 
   return (
-    <Grid
-      container
-      justifyContent="center"
-      alignItems="center"
+    <Box
       sx={{
         minHeight: '100vh',
         backgroundColor: '#0A0F19',
@@ -77,9 +73,22 @@ export default function LoginPage() {
           0.07
         )}, transparent 60%)`,
         px: 2,
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
       }}
     >
-      <Grid item xs={12} sm={10} md={5} lg={4}>
+      <Box
+        sx={{
+          width: {
+            xs: '100%',
+            sm: '83%',
+            md: '42%',
+            lg: '33%',
+          },
+          maxWidth: 500,
+        }}
+      >
         <Paper
           elevation={6}
           sx={{
@@ -213,7 +222,7 @@ export default function LoginPage() {
             </Typography>
           </Box>
         </Paper>
-      </Grid>
-    </Grid>
+      </Box>
+    </Box>
   );
 }

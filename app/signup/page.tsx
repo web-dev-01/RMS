@@ -5,7 +5,6 @@ import {
   Button,
   Container,
   CssBaseline,
-  Grid,
   IconButton,
   InputAdornment,
   TextField,
@@ -152,13 +151,11 @@ export default function RegisterPage() {
             </Button>
           </form>
 
-          <Grid container justifyContent="flex-end" sx={{ mt: 2 }}>
-            <Grid item>
-              <Link href="/login" variant="body2">
-                Already have an account? Login
-              </Link>
-            </Grid>
-          </Grid>
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', width: '100%', mt: 2 }}>
+            <Link href="/login" variant="body2">
+              Already have an account? Login
+            </Link>
+          </Box>
         </Box>
       </Paper>
 

@@ -55,7 +55,7 @@ interface Platform {
   Devices: Device[] | undefined;
 }
 
-interface Station {
+interface LatestStationData {
   _id: string;
   stationCode: string;
   stationName: string;
@@ -369,12 +369,12 @@ export default function PlatformsDevicesPage() {
   const lightBlue = '#90CAF9';
   const darkGrey = '#121212';
 
-  const [stations, setStations] = useState<Station[]>([]);
+  const [latestStationData, setLatestStationData] = useState<LatestStationData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedDevice, setSelectedDevice] = useState<Device | null>(null);
 
-  // Fetch API function
+  // Fetch API function - now gets only latest platforms
   const fetchData = async () => {
     setLoading(true);
     setError(null);
@@ -385,16 +385,17 @@ export default function PlatformsDevicesPage() {
         },
       });
       const json = await res.json();
-      if (json.success && Array.isArray(json.data)) {
-        setStations(json.data);
+      
+      if (json.success && json.data) {
+        setLatestStationData(json.data);
       } else {
-        setStations([]);
-        setError(json.message || 'No stations found.');
+        setLatestStationData(null);
+        setError(json.message || 'No latest platform data found.');
       }
     } catch (err) {
       console.error('Error fetching data:', err);
-      setError('Server error while loading data.');
-      setStations([]);
+      setError('Server error while loading latest platform data.');
+      setLatestStationData(null);
     } finally {
       setLoading(false);
     }
@@ -420,16 +421,16 @@ export default function PlatformsDevicesPage() {
         {/* Header */}
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
           <Typography variant="h4" sx={{ fontWeight: 'bold', color: lightBlue }}>
-            Station Platforms & Devices
+            Latest Station Platforms & Devices
           </Typography>
-          <Tooltip title="Refresh Data">
+          <Tooltip title="Refresh Latest Data">
             <IconButton
               onClick={fetchData}
               sx={{
                 color: lightBlue,
                 '&:hover': { bgcolor: '#90caf933' },
               }}
-              aria-label="refresh data"
+              aria-label="refresh latest data"
             >
               <RefreshIcon />
             </IconButton>
@@ -445,26 +446,30 @@ export default function PlatformsDevicesPage() {
           <Alert severity="error" sx={{ bgcolor: darkGrey, color: lightBlue, fontWeight: 'bold' }}>
             {error}
           </Alert>
-        ) : stations.length === 0 ? (
+        ) : !latestStationData ? (
           <Alert severity="info" sx={{ bgcolor: darkGrey, color: lightBlue, fontWeight: 'bold' }}>
-            No stations found.
+            No latest platform data found.
           </Alert>
         ) : (
-          // Render stations
-          stations.map((station) => (
-            <Box key={station._id} sx={{ mb: 6 }}>
-              <Typography
-                variant="h5"
-                sx={{ mb: 1, color: lightBlue, fontWeight: 'bold' }}
-                tabIndex={0}
-                aria-label={`Station ${station.stationName}`}
-              >
-                {station.stationName || 'N/A'} ({station.stationCode || 'N/A'})
+          // Render latest station data
+          <Box>
+            <Typography
+              variant="h5"
+              sx={{ mb: 1, color: lightBlue, fontWeight: 'bold' }}
+              tabIndex={0}
+              aria-label={`Latest Station ${latestStationData.stationName}`}
+            >
+              {latestStationData.stationName || 'N/A'} ({latestStationData.stationCode || 'N/A'})
+              <Typography variant="body2" sx={{ color: '#ccc', mt: 0.5 }}>
+                Last Updated: {new Date(latestStationData.updatedAt || latestStationData.createdAt).toLocaleString()}
               </Typography>
+            </Typography>
 
-              <PlatformsTable platforms={station.platforms || []} onDeviceClick={handleDeviceClick} />
-            </Box>
-          ))
+            <PlatformsTable 
+              platforms={latestStationData.platforms || []} 
+              onDeviceClick={handleDeviceClick} 
+            />
+          </Box>
         )}
 
         {/* Device Details Dialog */}

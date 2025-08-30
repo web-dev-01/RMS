@@ -29,30 +29,31 @@ const validateApiKey = (req: NextRequest) => req.headers.get('x-api-key') === pr
 
 const isValidPlatformsArray = (p: any) => Array.isArray(p) && p.every((pl: any) => pl && pl.PlatformNumber);
 
-// GET
+// GET - Return only the single latest platform record
 export const GET = async (req: NextRequest) => {
   try {
     if (!validateApiKey(req)) return NextResponse.json({ success: false, message: 'Invalid API key' }, { status: 401 });
 
     await dbConnect();
-    const url = new URL(req.url);
-    const stationCode = url.searchParams.get('stationCode');
+    
+    // Get the single latest platform record (since we only keep one)
+    const latestPlatformData = await PlatformDevice.findOne()
+      .sort({ createdAt: -1 }) // Get the most recent
+      .lean<IPlatformDevice>();
 
-    if (stationCode) {
-      const pd = await PlatformDevice.findOne({ stationCode: stationCode.toUpperCase() }).lean<IPlatformDevice>();
-      if (!pd) return NextResponse.json({ success: true, data: null, message: 'No platform/device data for this station' });
-      return NextResponse.json({ success: true, data: pd });
+    if (!latestPlatformData) {
+      return NextResponse.json({ success: true, data: null, message: 'No platform data found' });
     }
 
-    const data = await PlatformDevice.find().lean<IPlatformDevice>();
-    return NextResponse.json({ success: true, data });
+    return NextResponse.json({ success: true, data: latestPlatformData });
+
   } catch (err: any) {
     console.error('GET error:', err?.message, err?.stack);
     return NextResponse.json({ success: false, message: `Server Error: ${err.message}` }, { status: 500 });
   }
 };
 
-// POST
+// POST - Clear all previous and create only the latest platforms
 export const POST = async (req: NextRequest) => {
   try {
     if (!validateApiKey(req)) return NextResponse.json({ success: false, message: 'Invalid API key' }, { status: 401 });
@@ -68,30 +69,20 @@ export const POST = async (req: NextRequest) => {
     const stationExists = await Station.findOne({ StationCode: stationCode.toUpperCase() });
     if (!stationExists) return NextResponse.json({ success: false, message: 'Station code not found' }, { status: 404 });
 
-    const existingPd = await PlatformDevice.findOne({ stationCode: stationCode.toUpperCase() });
+    // CLEAR ALL PREVIOUS PLATFORM RECORDS FIRST
+    console.log('Clearing all previous platform records...');
+    await PlatformDevice.deleteMany({});
+    console.log('All previous platform records deleted');
 
-    if (existingPd) {
-      platforms.forEach((newPlatform: IPlatform) => {
-        const platformIndex = existingPd.platforms.findIndex((p: IPlatform) => p.PlatformNumber === newPlatform.PlatformNumber);
-        if (platformIndex === -1) {
-          existingPd.platforms.push(newPlatform);
-        } else {
-          const existingDevices = existingPd.platforms[platformIndex].Devices || [];
-          existingPd.platforms[platformIndex] = {
-            ...newPlatform,
-            Devices: [...existingDevices, ...(newPlatform.Devices || [])],
-          };
-        }
-      });
-
-      existingPd.stationName = stationName;
-      existingPd.markModified('platforms');
-      await existingPd.save();
-      return NextResponse.json({ success: true, data: existingPd }, { status: 200 });
-    } else {
-      const newPd = await PlatformDevice.create({ stationCode: stationCode.toUpperCase(), stationName, platforms });
-      return NextResponse.json({ success: true, data: newPd }, { status: 201 });
-    }
+    // Create new platform record (since we cleared all previous ones)
+    const newPd = await PlatformDevice.create({ 
+      stationCode: stationCode.toUpperCase(), 
+      stationName, 
+      platforms 
+    });
+    
+    console.log(`Created new platform record for station ${stationCode}`);
+    return NextResponse.json({ success: true, data: newPd }, { status: 201 });
   } catch (err: any) {
     console.error('POST error:', err?.message, err?.stack);
     return NextResponse.json({ success: false, message: `Server Error: ${err.message}` }, { status: 500 });

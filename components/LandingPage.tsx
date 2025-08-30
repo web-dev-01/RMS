@@ -107,7 +107,7 @@ export default function LandingPage() {
             width={32}
             style={{ marginRight: 8 }}
           />
-          IPIPS RMS
+          IPIS-RMS
         </Box>
 
         {/* Desktop Menu */}
@@ -300,7 +300,7 @@ export default function LandingPage() {
                 fontSize: { xs: '1.5rem', md: '1.8rem' },
               }}
             >
-              IP-IPIS REMOTE MONITORING SYSTEM
+              IPIS-REMOTE MONITORING SYSTEM
             </Typography>
           </Box>
         </Container>
@@ -322,7 +322,7 @@ export default function LandingPage() {
               fontSize: { xs: '2rem', sm: '2.5rem', md: '3.5rem' },
             }}
           >
-            Advanced Railway Management System for{' '}
+            Advanced Remote Monitoring System for{' '}
             <Box
               component="span"
               sx={{

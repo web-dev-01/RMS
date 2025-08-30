@@ -51,7 +51,6 @@ interface CapAlert {
 }
 
 export default function CapAlerts() {
-  const stationCode = 'NDLS'; // fixed station code
   const [alerts, setAlerts] = useState<CapAlert[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -62,12 +61,13 @@ export default function CapAlerts() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`/api/rms/cap-alerts?stationCode=${stationCode}`, {
+      // Fetch ALL alerts (no stationCode parameter)
+      const res = await fetch('/api/rms/cap-alerts', {
         headers: { 'x-api-key': process.env.NEXT_PUBLIC_API_KEY || '' },
       });
       const json = await res.json();
       if (json.success && Array.isArray(json.data)) {
-        setAlerts(json.data.slice(0, 10)); // top 10 alerts only for display
+        setAlerts(json.data.slice(0, 10)); // top 10 alerts only for dashboard display
       } else {
         setAlerts([]);
         setError(json.message || 'No CAP alerts found');
@@ -82,16 +82,16 @@ export default function CapAlerts() {
 
   useEffect(() => {
     fetchAlerts();
-  }, [stationCode]);
+  }, []);
 
-  // Download handler moved out for clarity (optional)
+  // Download handler
   const handleDownload = () => {
     const dataStr = JSON.stringify(alerts, null, 2);
     const blob = new Blob([dataStr], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `CAP_Alerts_${stationCode}_${new Date().toISOString()}.json`;
+    link.download = `CAP_Alerts_All_Stations_${new Date().toISOString()}.json`;
     document.body.appendChild(link);
     link.click();
     link.remove();
@@ -112,7 +112,7 @@ export default function CapAlerts() {
       <CardHeader
         title={
           <Typography variant="h6" sx={{ color: '#90CAF9', textAlign: 'center' }}>
-            CAP Alerts ({stationCode})
+            CAP Alerts (for this Station)
           </Typography>
         }
         action={
@@ -173,7 +173,7 @@ export default function CapAlerts() {
             color: '#888',
           }}
         >
-          No CAP alerts for {stationCode}
+          No CAP alerts found
         </Box>
       ) : (
         <TableContainer
@@ -193,6 +193,7 @@ export default function CapAlerts() {
           <Table size="small" stickyHeader sx={{ width: '100%' }}>
             <TableHead>
               <TableRow>
+                <TableCell sx={{ color: '#90CAF9', fontWeight: 'bold' }}>Station</TableCell>
                 <TableCell sx={{ color: '#90CAF9', fontWeight: 'bold' }}>Identifier</TableCell>
                 <TableCell sx={{ color: '#90CAF9', fontWeight: 'bold' }}>Sender</TableCell>
                 <TableCell sx={{ color: '#90CAF9', fontWeight: 'bold' }}>Sent</TableCell>
@@ -206,6 +207,7 @@ export default function CapAlerts() {
             <TableBody>
               {alerts.map((alert) => (
                 <TableRow key={alert._id} sx={{ '&:hover': { backgroundColor: '#2a2a2a' } }}>
+                  <TableCell sx={{ color: '#E0E0E0' }}>{alert.stationCode}</TableCell>
                   <TableCell sx={{ color: '#E0E0E0' }}>{alert.identifier}</TableCell>
                   <TableCell sx={{ color: '#ccc' }}>{alert.sender}</TableCell>
                   <TableCell sx={{ color: '#ccc' }}>{new Date(alert.sent).toLocaleString()}</TableCell>

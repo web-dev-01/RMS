@@ -139,7 +139,7 @@ const AppToolbar: React.FC<AppToolbarProps> = ({ handleDrawerToggle }) => {
               textTransform: 'uppercase',
             }}
           >
-            IP-IPIS REMOTE MONITORING SYSTEM
+            IPIS-RMS 
           </Typography>
         </Box>
 

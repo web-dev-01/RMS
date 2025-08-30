@@ -68,16 +68,16 @@ interface Train {
   createdAt: string;
 }
 
-export default function ActiveTrainsPage() {
+const ActiveTrainsPage: React.FC = () => {
   const [trains, setTrains] = useState<Train[]>([]);
   const [filteredTrains, setFilteredTrains] = useState<Train[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState('All');
-  const [typeFilter, setTypeFilter] = useState('All');
+  const [loading, setLoading] = useState<boolean>(true);
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [statusFilter, setStatusFilter] = useState<string>('All');
+  const [typeFilter, setTypeFilter] = useState<string>('All');
   const [selectedTrain, setSelectedTrain] = useState<Train | null>(null);
-  const [showCoachList, setShowCoachList] = useState(false);
-  const stationCode = 'NDLS'; 
+  const [showCoachList, setShowCoachList] = useState<boolean>(false);
+  const [stationCode, setStationCode] = useState<string>('');
   const router = useRouter();
 
   const colors = {
@@ -93,7 +93,27 @@ export default function ActiveTrainsPage() {
     hoverShadow: '0 8px 20px rgba(0,191,166,0.3)',
   };
 
-  const fetchTrains = async () => {
+  const fetchStationCode = async (): Promise<void> => {
+    try {
+      const res = await fetch('/api/rms/station-code', {
+        headers: {
+          'x-api-key': process.env.NEXT_PUBLIC_API_KEY || '',
+        },
+      });
+      const json = await res.json();
+      if (json.success && json.data?.stationCode) {
+        setStationCode(json.data.stationCode);
+      } else {
+        console.warn(json.message || 'No station code found');
+        setStationCode('NDLS');
+      }
+    } catch (error) {
+      console.error('Error fetching station code:', error);
+      setStationCode('NDLS');
+    }
+  };
+
+  const fetchTrains = async (): Promise<void> => {
     setLoading(true);
     try {
       const res = await fetch(`/api/rms/active-trains?stationCode=${stationCode}`, {
@@ -121,7 +141,13 @@ export default function ActiveTrainsPage() {
   };
 
   useEffect(() => {
-    fetchTrains();
+    fetchStationCode();
+  }, []);
+
+  useEffect(() => {
+    if (stationCode) {
+      fetchTrains();
+    }
   }, [stationCode]);
 
   useEffect(() => {
@@ -149,21 +175,21 @@ export default function ActiveTrainsPage() {
     setFilteredTrains(filtered);
   }, [searchQuery, statusFilter, typeFilter, trains]);
 
-  const handleView = (train: Train) => {
+  const handleView = (train: Train): void => {
     setSelectedTrain(train);
     setShowCoachList(false);
   };
 
-  const handleCloseDialog = () => {
+  const handleCloseDialog = (): void => {
     setSelectedTrain(null);
     setShowCoachList(false);
   };
 
-  const toggleCoachList = () => {
+  const toggleCoachList = (): void => {
     setShowCoachList((prev) => !prev);
   };
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = (status: string): string => {
     const s = status.toLowerCase();
     if (s.includes('on time')) return colors.chipOnTime;
     if (s.includes('late')) return colors.chipLate;
@@ -202,7 +228,7 @@ export default function ActiveTrainsPage() {
             }}
           >
             <TrainIcon fontSize="large" />
-            Active Trains Dashboard ({stationCode})
+            Active Trains Dashboard 
           </Typography>
 
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -625,4 +651,6 @@ export default function ActiveTrainsPage() {
       </Box>
     </Template>
   );
-}
+};
+
+export default ActiveTrainsPage;

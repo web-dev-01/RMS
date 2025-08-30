@@ -1,4 +1,3 @@
-import { NextRequest, NextResponse } from 'next/server';
 import mongoose from 'mongoose';
 import dbConnect from '@/lib/dbConnect';
 import { Station } from '@/models/station';
@@ -26,43 +25,47 @@ interface IEventLog {
 }
 
 // Validate API key
-const validateApiKey = (req: NextRequest) => req.headers.get('x-api-key') === process.env.API_KEY;
+const validateApiKey = (req: Request) => req.headers.get('x-api-key') === process.env.API_KEY;
 
-// GET: Get event logs by stationCode
-export async function GET(req: NextRequest) {
+// GET: Get event logs by stationCode or all logs if no stationCode
+export async function GET(req: Request) {
   try {
-    if (!validateApiKey(req)) return NextResponse.json({ success: false, message: 'Invalid API key' }, { status: 401 });
+    if (!validateApiKey(req)) return new Response(JSON.stringify({ success: false, message: 'Invalid API key' }), { status: 401 });
 
     await dbConnect();
     const url = new URL(req.url);
     const stationCode = url.searchParams.get('stationCode');
-    if (!stationCode) return NextResponse.json({ success: false, message: 'stationCode is required' }, { status: 400 });
 
-    const station = await Station.findOne({ StationCode: stationCode.toUpperCase() }).lean<IStation>();
-    if (!station) return NextResponse.json({ success: false, message: `Station not found for code: ${stationCode}` }, { status: 404 });
+    let eventLogs;
+    if (stationCode) {
+      const station = await Station.findOne({ StationCode: stationCode.toUpperCase() }).lean<IStation>();
+      if (!station) return new Response(JSON.stringify({ success: false, message: `Station not found for code: ${stationCode}` }), { status: 404 });
+      eventLogs = await EventLog.find({ stationId: station._id }).lean<IEventLog>();
+    } else {
+      eventLogs = await EventLog.find().lean<IEventLog>(); // Fetch all logs if no stationCode
+    }
 
-    const eventLogs = await EventLog.find({ stationId: station._id }).lean<IEventLog>();
-    return NextResponse.json({ success: true, data: eventLogs });
+    return new Response(JSON.stringify({ success: true, data: eventLogs }), { status: 200 });
   } catch (err: any) {
     console.error('GET /api/rms/event-logs error:', err.message, err.stack);
-    return NextResponse.json({ success: false, message: 'Server Error' }, { status: 500 });
+    return new Response(JSON.stringify({ success: false, message: 'Server Error' }), { status: 500 });
   }
 }
 
 // POST: Create event logs
-export async function POST(req: NextRequest) {
+export async function POST(req: Request) {
   try {
-    if (!validateApiKey(req)) return NextResponse.json({ success: false, message: 'Invalid API key' }, { status: 401 });
+    if (!validateApiKey(req)) return new Response(JSON.stringify({ success: false, message: 'Invalid API key' }), { status: 401 });
     await dbConnect();
 
     const body = await req.json();
     const logsArray = Array.isArray(body) ? body : [body];
 
-    if (!logsArray.length) return NextResponse.json({ success: false, message: 'Empty array not allowed' }, { status: 400 });
+    if (!logsArray.length) return new Response(JSON.stringify({ success: false, message: 'Empty array not allowed' }), { status: 400 });
 
     const stationCodeUpper = logsArray[0].stationCode.toUpperCase();
     const station = await Station.findOne({ StationCode: stationCodeUpper }).lean<IStation>();
-    if (!station) return NextResponse.json({ success: false, message: `Station not found for code: ${stationCodeUpper}` }, { status: 404 });
+    if (!station) return new Response(JSON.stringify({ success: false, message: `Station not found for code: ${stationCodeUpper}` }), { status: 404 });
 
     const eventLogsToInsert = logsArray.map(log => ({
       stationId: station._id,
@@ -75,52 +78,52 @@ export async function POST(req: NextRequest) {
     }));
 
     const insertedLogs = await EventLog.insertMany(eventLogsToInsert, { ordered: false });
-    return NextResponse.json({ success: true, data: insertedLogs }, { status: 201 });
+    return new Response(JSON.stringify({ success: true, data: insertedLogs }), { status: 201 });
   } catch (err: any) {
     console.error('POST /api/rms/event-logs error:', err.message, err.stack);
-    if (err.code === 11000) return NextResponse.json({ success: false, message: 'One or more EventID already exists' }, { status: 400 });
-    return NextResponse.json({ success: false, message: 'Server Error' }, { status: 500 });
+    if (err.code === 11000) return new Response(JSON.stringify({ success: false, message: 'One or more EventID already exists' }), { status: 400 });
+    return new Response(JSON.stringify({ success: false, message: 'Server Error' }), { status: 500 });
   }
 }
 
 // PUT: Update event log
-export async function PUT(req: NextRequest) {
+export async function PUT(req: Request) {
   try {
-    if (!validateApiKey(req)) return NextResponse.json({ success: false, message: 'Invalid API key' }, { status: 401 });
+    if (!validateApiKey(req)) return new Response(JSON.stringify({ success: false, message: 'Invalid API key' }), { status: 401 });
     await dbConnect();
 
     const body = await req.json();
     const { id, ...updateData } = body;
-    if (!id) return NextResponse.json({ success: false, message: 'Event log ID is required' }, { status: 400 });
-    if (!mongoose.Types.ObjectId.isValid(id)) return NextResponse.json({ success: false, message: 'Invalid event log ID format' }, { status: 400 });
+    if (!id) return new Response(JSON.stringify({ success: false, message: 'Event log ID is required' }), { status: 400 });
+    if (!mongoose.Types.ObjectId.isValid(id)) return new Response(JSON.stringify({ success: false, message: 'Invalid event log ID format' }), { status: 400 });
 
     const updatedEventLog = await EventLog.findByIdAndUpdate(id, { $set: updateData }, { new: true, runValidators: true }).lean<IEventLog>();
-    if (!updatedEventLog) return NextResponse.json({ success: false, message: 'Event log not found' }, { status: 404 });
+    if (!updatedEventLog) return new Response(JSON.stringify({ success: false, message: 'Event log not found' }), { status: 404 });
 
-    return NextResponse.json({ success: true, data: updatedEventLog });
+    return new Response(JSON.stringify({ success: true, data: updatedEventLog }), { status: 200 });
   } catch (err: any) {
     console.error('PUT /api/rms/event-logs error:', err.message, err.stack);
-    if (err.code === 11000) return NextResponse.json({ success: false, message: 'EventID already exists' }, { status: 400 });
-    return NextResponse.json({ success: false, message: 'Server Error' }, { status: 500 });
+    if (err.code === 11000) return new Response(JSON.stringify({ success: false, message: 'EventID already exists' }), { status: 400 });
+    return new Response(JSON.stringify({ success: false, message: 'Server Error' }), { status: 500 });
   }
 }
 
 // DELETE: Delete event log
-export async function DELETE(req: NextRequest) {
+export async function DELETE(req: Request) {
   try {
-    if (!validateApiKey(req)) return NextResponse.json({ success: false, message: 'Invalid API key' }, { status: 401 });
+    if (!validateApiKey(req)) return new Response(JSON.stringify({ success: false, message: 'Invalid API key' }), { status: 401 });
     await dbConnect();
 
     const id = new URL(req.url).searchParams.get('id');
-    if (!id) return NextResponse.json({ success: false, message: 'Event log ID is required' }, { status: 400 });
-    if (!mongoose.Types.ObjectId.isValid(id)) return NextResponse.json({ success: false, message: 'Invalid event log ID format' }, { status: 400 });
+    if (!id) return new Response(JSON.stringify({ success: false, message: 'Event log ID is required' }), { status: 400 });
+    if (!mongoose.Types.ObjectId.isValid(id)) return new Response(JSON.stringify({ success: false, message: 'Invalid event log ID format' }), { status: 400 });
 
     const deletedEventLog = await EventLog.findByIdAndDelete(id).lean<IEventLog>();
-    if (!deletedEventLog) return NextResponse.json({ success: false, message: 'Event log not found' }, { status: 404 });
+    if (!deletedEventLog) return new Response(JSON.stringify({ success: false, message: 'Event log not found' }), { status: 404 });
 
-    return NextResponse.json({ success: true, message: 'Event log deleted' });
+    return new Response(JSON.stringify({ success: true, message: 'Event log deleted' }), { status: 200 });
   } catch (err: any) {
     console.error('DELETE /api/rms/event-logs error:', err.message, err.stack);
-    return NextResponse.json({ success: false, message: 'Server Error' }, { status: 500 });
+    return new Response(JSON.stringify({ success: false, message: 'Server Error' }), { status: 500 });
   }
 }

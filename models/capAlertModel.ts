@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 const areaSchema = new mongoose.Schema({
   areaDesc: {
     type: String,
-    required: true,
+    required: false,
     trim: true
   }
 });
@@ -11,49 +11,49 @@ const areaSchema = new mongoose.Schema({
 const infoSchema = new mongoose.Schema({
   category: {
     type: String,
-    required: true,
+    required: false,
     trim: true
   },
   event: {
     type: String,
-    required: true,
+    required: false,
     trim: true
   },
   urgency: {
     type: String,
-    required: true,
+    required: false,
     trim: true,
-    enum: ['Immediate', 'Expected', 'Future', 'Past', 'Unknown']
+    
   },
   severity: {
     type: String,
-    required: true,
+    required: false,
     trim: true,
-    enum: ['Extreme', 'Severe', 'Moderate', 'Minor', 'Unknown']
+    
   },
   certainty: {
     type: String,
-    required: true,
+    required: false,
     trim: true,
-    enum: ['Observed', 'Likely', 'Possible', 'Unlikely', 'Unknown']
+    
   },
   headline: {
     type: String,
-    required: true,
+    required: false,
     trim: true
   },
   description: {
     type: String,
-    required: true,
+    required: false,
     trim: true
   },
   effective: {
     type: Date,
-    required: true
+    required: false
   },
   expires: {
     type: Date,
-    required: true
+    required: false
   },
   area: [areaSchema]
 });
@@ -81,26 +81,26 @@ const capAlertSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    required: true,
+    required: false,
     trim: true,
-    enum: ['Actual', 'Exercise', 'System', 'Test', 'Draft']
+    
   },
   msgType: {
     type: String,
-    required: true,
+    required: false,
     trim: true,
-    enum: ['Alert', 'Update', 'Cancel', 'Ack', 'Error']
+    
   },
   source: {
     type: String,
-    required: true,
+    required: false,
     trim: true
   },
   scope: {
     type: String,
-    required: true,
+    required: false,
     trim: true,
-    enum: ['Public', 'Restricted', 'Private']
+   
   },
   info: infoSchema
 }, {

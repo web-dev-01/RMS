@@ -57,7 +57,7 @@ const Sidebar = () => {
     { text: 'Dashboard', icon: <Home />, path: '/dashboard' },
     { text: 'Active Trains', icon: <Train />, path: '/rms/active-trains' },
     { text: 'Platforms & Devices', icon: <Settings />, path: '/rms/platforms-devices' },
-    { text: 'System Logs', icon: <Assignment />, path: '/rms/event-logs' },
+    { text: 'Event Logs', icon: <Assignment />, path: '/rms/event-logs' },
     { text: 'CAP Alerts', icon: <Notifications />, path: '/rms/cap-alerts' },
   ];
 

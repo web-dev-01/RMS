@@ -5,7 +5,6 @@ import {
   Box,
   Card,
   CardHeader,
-  CircularProgress,
   Table,
   TableBody,
   TableCell,
@@ -31,8 +30,6 @@ interface EventLog {
   IsSentToServer: boolean;
 }
 
-const FIXED_STATION_CODE = 'NDLS';
-
 export default function EventLogs() {
   const [logs, setLogs] = useState<EventLog[]>([]);
   const [loading, setLoading] = useState(true);
@@ -42,30 +39,33 @@ export default function EventLogs() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`/api/rms/event-logs?stationCode=${FIXED_STATION_CODE}`, {
+      const res = await fetch('/api/rms/event-logs', {
         headers: {
           'x-api-key': process.env.NEXT_PUBLIC_API_KEY || '',
         },
       });
       const json = await res.json();
-
+      console.log('Event logs response:', json);
       if (json.success) {
-        setLogs(json.data);
+        setLogs(Array.isArray(json.data) ? json.data : []);
       } else {
         setError(json.message || 'Failed to fetch event logs');
+        setLogs([]);
       }
-    } catch {
+    } catch (err) {
+      console.error('Error fetching event logs:', err);
       setError('Network error while fetching event logs');
+      setLogs([]);
     } finally {
       setLoading(false);
     }
   };
 
-  React.useEffect(() => {
+  useEffect(() => {
     fetchEventLogs();
   }, []);
 
-  const convertToCSV = (logs: EventLog[]) => {
+  const convertToCSV = (logs: EventLog[]): string => {
     const headers = [
       'EventID',
       'Timestamp',
@@ -87,7 +87,7 @@ export default function EventLogs() {
     return [headers, ...rows].map(e => e.join(',')).join('\n');
   };
 
-  const downloadCSV = () => {
+  const downloadCSV = (): void => {
     if (logs.length === 0) return;
 
     const csv = convertToCSV(logs);
@@ -109,7 +109,10 @@ export default function EventLogs() {
           bgcolor: '#121212',
           borderRadius: 3,
           border: '1px solid #90CAF9',
-          p: 1,
+          p: 0,
+          mt: 0,
+          mb: 0,
+          
           height: '100%',
           display: 'flex',
           flexDirection: 'column',
@@ -121,7 +124,7 @@ export default function EventLogs() {
               variant="h5"
               sx={{ color: '#90CAF9', textAlign: 'center', fontWeight: 'bold' }}
             >
-              Event Logs for Station: {FIXED_STATION_CODE}
+              Event Logs
             </Typography>
           }
           action={
@@ -145,10 +148,9 @@ export default function EventLogs() {
               </Button>
             </Stack>
           }
-          sx={{ pb: 2 }}
+          sx={{ pb: 0 }}
         />
 
-        {/* Content area fills remaining height */}
         <Box
           sx={{
             flexGrow: 1,
@@ -157,24 +159,9 @@ export default function EventLogs() {
             flexDirection: 'column',
           }}
         >
-          {loading ? (
-            <Box
-              sx={{
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                flexGrow: 1,
-              }}
-            >
-              <CircularProgress sx={{ color: '#90CAF9' }} />
-            </Box>
-          ) : error ? (
+          {error ? (
             <Typography sx={{ color: 'error.main', textAlign: 'center', py: 8 }}>
               {error}
-            </Typography>
-          ) : logs.length === 0 ? (
-            <Typography sx={{ color: '#888', textAlign: 'center', py: 8 }}>
-              No event logs found
             </Typography>
           ) : (
             <TableContainer
@@ -186,6 +173,7 @@ export default function EventLogs() {
                 borderRadius: 2,
                 boxShadow: 'none',
                 m: 0,
+                maxHeight: '100%',
                 '&::-webkit-scrollbar': { width: '8px' },
                 '&::-webkit-scrollbar-thumb': {
                   backgroundColor: '#555',
@@ -197,11 +185,11 @@ export default function EventLogs() {
                 stickyHeader
                 size="small"
                 aria-label="event logs table"
-                sx={{ tableLayout: 'fixed', width: '100%' }}
+                sx={{ tableLayout: 'fixed', width: '100%', minHeight: '80%' }}
               >
                 <TableHead>
                   <TableRow>
-                    <TableCell sx={{ color: '#90CAF9', fontWeight: 'bold', width: '10%' }}>
+                    <TableCell sx={{ color: '#90CAF9', fontWeight: 'bold', width: '19%' }}>
                       Event ID
                     </TableCell>
                     <TableCell sx={{ color: '#90CAF9', fontWeight: 'bold', width: '20%' }}>
@@ -223,7 +211,7 @@ export default function EventLogs() {
                     >
                       Description
                     </TableCell>
-                    <TableCell sx={{ color: '#90CAF9', fontWeight: 'bold', width: '10%' }}>
+                    <TableCell sx={{ color: '#90CAF9', fontWeight: 'bold', width: '30%' }}>
                       Sent To Server
                     </TableCell>
                   </TableRow>

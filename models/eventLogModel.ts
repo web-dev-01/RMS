@@ -3,7 +3,7 @@ import mongoose, { Schema, model, models } from 'mongoose';
 const eventLogSchema = new Schema({
   Timestamp: { 
     type: Date, 
-    required: true,
+    required: false,
     default: Date.now 
   },
   EventID: { 
@@ -14,11 +14,11 @@ const eventLogSchema = new Schema({
   },
   EventType: { 
     type: String, 
-    required: true 
+    required: false 
   },
   Source: { 
     type: String, 
-    required: true 
+    required: false 
   },
   Description: { 
     type: String, 
@@ -26,13 +26,13 @@ const eventLogSchema = new Schema({
   },
   IsSentToServer: { 
     type: Boolean, 
-    required: true,
+    required: false,
     default: false 
   },
   stationId: { 
     type: mongoose.Schema.Types.ObjectId, 
     ref: 'Station', 
-    required: true,
+    required: false,
     index: true // For faster lookup
   },
 }, {

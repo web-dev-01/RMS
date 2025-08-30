@@ -1,7 +1,7 @@
 'use client';
 import 'leaflet/dist/leaflet.css';
 
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import Template from '@/app/dashboard/Template';
 import ActiveTrains from '@/app/dashboard/ActiveTrains';
 import PlatformsDevices from '@/app/dashboard/PlatformsDevices';
@@ -9,42 +9,11 @@ import CAPAlerts from '@/app/dashboard/CAPAlerts';
 import EventLogs from '@/app/dashboard/EventLogs';
 import StationInfo from '@/app/dashboard/StationInfo';
 
-import { Box, Container, Grid, Typography, Stack, IconButton, Card } from '@mui/material';
+import { Box, Container, Card, Typography, Stack, IconButton } from '@mui/material';
 import { Facebook, Twitter, Instagram, LinkedIn } from '@mui/icons-material';
 
 export default function Dashboard() {
-  const [trains, setTrains] = useState<any[]>([]);
-  const [loadingTrains, setLoadingTrains] = useState(true);
-  const [errorTrains, setErrorTrains] = useState<string | null>(null);
-  const stationCode = 'NDLS';
-
   const textGreen = '#8e988e';
-
-  useEffect(() => {
-    async function fetchTrains() {
-      setLoadingTrains(true);
-      setErrorTrains(null);
-      try {
-        const res = await fetch(`/api/rms/active-trains?stationCode=${stationCode}`, {
-          headers: { 'x-api-key': process.env.NEXT_PUBLIC_API_KEY || '' },
-        });
-        const json = await res.json();
-
-        if (json.success && Array.isArray(json.data)) {
-          setTrains(json.data);
-        } else {
-          setTrains([]);
-          setErrorTrains(json.message || 'No active trains found');
-        }
-      } catch (err) {
-        setErrorTrains('Failed to fetch active trains');
-        setTrains([]);
-      } finally {
-        setLoadingTrains(false);
-      }
-    }
-    fetchTrains();
-  }, [stationCode]);
 
   return (
     <Template>
@@ -55,9 +24,9 @@ export default function Dashboard() {
           border: '1px solid #90CAF9',
           borderRadius: 2,
           p: 0,
-          px:0,
-          pt:0,
-          mt:0,
+          px: 0,
+          pt: 0,
+          mt: 0,
         }}
       >
         <StationInfo />
@@ -65,22 +34,17 @@ export default function Dashboard() {
 
       {/* Active Trains */}
       <Box sx={{ mt: 1 }}>
-        <ActiveTrains
-          trains={trains}
-          loading={loadingTrains}
-          error={errorTrains}
-          stationCode={stationCode}
-        />
+        <ActiveTrains />
       </Box>
 
-      {/* Row 2: Platforms & Devices + Event Logs (Reduced Height, Same Width) */}
+      {/* Row 2: Platforms & Devices + Event Logs */}
       <Box
         sx={{
           mt: 1,
           display: 'flex',
           width: '100%',
           gap: 2,
-          height: '400px', // reduced height from 600px to 400px
+          height: '400px',
         }}
       >
         <Card
@@ -128,7 +92,7 @@ export default function Dashboard() {
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
             <Box sx={{ flex: '1 1 300px', minWidth: '300px' }}>
               <Typography variant="h6" fontWeight={700} gutterBottom sx={{ color: textGreen }}>
-                IP-IPIS RMS
+                IPIS-RMS
               </Typography>
               <Typography variant="body2" sx={{ lineHeight: 1.6, color: textGreen }}>
                 RMS for IP based Integrated Passenger Information System.<br />

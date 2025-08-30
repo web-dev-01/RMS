@@ -21,11 +21,10 @@ import {
 import RefreshIcon from '@mui/icons-material/Refresh';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
-import { useRouter } from 'next/navigation';
 
 interface Device {
   Id: number;
-  DeviceType: 'CDS' | 'PDC' | 'CGDB' | 'AGDB';
+  DeviceType: string;
   IpAddress: string;
   Status: boolean;
   LastStatusWhen: string;
@@ -39,85 +38,109 @@ interface Platform {
   Devices: Device[];
 }
 
-export default function PlatformsDevices() {
+interface ApiResponse {
+  success: boolean;
+  data: {
+    _id: string;
+    stationCode: string;
+    stationName: string;
+    platforms: Platform[];
+    createdAt: string;
+    updatedAt: string;
+    lastUpdated?: string; // Made optional since it may not exist
+  } | null;
+  message?: string;
+}
+
+interface Props {
+  stationCode?: string;
+}
+
+export default function PlatformsDevices({ stationCode }: Props) {
   const [platforms, setPlatforms] = useState<Platform[]>([]);
+  const [stationInfo, setStationInfo] = useState<{ code: string; name: string; lastUpdated: string } | null>(null);
   const [loading, setLoading] = useState(true);
   const [expandedPlatformIndex, setExpandedPlatformIndex] = useState<number | null>(null);
-  const stationCode = 'NDLS'; // TODO: Make dynamic later
-  const router = useRouter();
 
-  const fetchData = async () => {
+  const fetchPlatforms = async () => {
     setLoading(true);
+    console.log('Fetching latest platforms, stationCode provided:', stationCode);
     try {
-      const res = await fetch(`/api/rms/platforms-devices?stationCode=${stationCode}`, {
-        headers: { 'x-api-key': process.env.NEXT_PUBLIC_API_KEY || '' },
+      const url = stationCode 
+        ? `/api/rms/platforms-devices?stationCode=${stationCode}`
+        : '/api/rms/platforms-devices';
+        
+      const res = await fetch(url, {
+        headers: {
+          'x-api-key': process.env.NEXT_PUBLIC_API_KEY || '',
+        },
       });
-      const json = await res.json();
-      if (json.success && json.data && Array.isArray(json.data.platforms)) {
-        setPlatforms(json.data.platforms);
+      const json: ApiResponse = await res.json();
+      console.log('API response:', json);
+
+      if (json.success && json.data) {
+        setPlatforms(json.data.platforms || []);
+        setStationInfo({
+          code: json.data.stationCode,
+          name: json.data.stationName,
+          lastUpdated: json.data.lastUpdated || json.data.updatedAt || json.data.createdAt
+        });
       } else {
-        console.warn('No platforms data found for stationCode:', stationCode);
         setPlatforms([]);
+        setStationInfo(null);
+        console.warn('No platform data found:', json.message);
       }
     } catch (err) {
-      console.error('Error fetching Platforms & Devices:', err);
+      console.error('Error fetching platforms:', err);
       setPlatforms([]);
+      setStationInfo(null);
     } finally {
       setLoading(false);
     }
   };
 
-  React.useEffect(() => {
-    fetchData();
+  useEffect(() => {
+    fetchPlatforms();
   }, [stationCode]);
 
   const toggleExpand = (index: number) => {
-    setExpandedPlatformIndex((prev) => (prev === index ? null : index));
+    setExpandedPlatformIndex(prev => (prev === index ? null : index));
   };
 
   return (
     <Card
       sx={{
         bgcolor: '#1E1E1E',
-        borderRadius: 2,
+        borderRadius: 3,
         border: '1px solid #90CAF9',
         height: '450px',
         display: 'flex',
         flexDirection: 'column',
-        pb: 0,
-        pt: 0,
-        px: 0,
-        py: 0,
-        overflow: 'hidden',
       }}
     >
       <CardHeader
         title={
           <Typography variant="h6" sx={{ color: '#90CAF9', textAlign: 'center' }}>
-            Platforms & Devices ({stationCode})
+            Latest Platforms & Devices 
+            {stationInfo && (
+              <Typography variant="body2" sx={{ color: '#ccc', mt: 0.5 }}>
+                  
+              </Typography>
+            )}
           </Typography>
         }
         action={
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <IconButton
               aria-label="refresh"
-              onClick={fetchData}
+              onClick={fetchPlatforms}
               sx={{ color: '#90CAF9' }}
               disabled={loading}
             >
               <RefreshIcon />
             </IconButton>
-            <Button
-              variant="outlined"
-              size="small"
-              sx={{ color: '#90CAF9', borderColor: '#90CAF9' }}
-              onClick={() => router.push('/rms/platforms-devices')}
-            >
-              View More
-            </Button>
           </Box>
         }
-        sx={{ pb: 1 }}
       />
 
       {loading ? (
@@ -126,9 +149,15 @@ export default function PlatformsDevices() {
         </Box>
       ) : platforms.length === 0 ? (
         <Box
-          sx={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', color: '#888' }}
+          sx={{
+            flex: 1,
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            color: '#888',
+          }}
         >
-          No platforms available for {stationCode}
+          No platforms available in latest data
         </Box>
       ) : (
         <TableContainer
@@ -183,6 +212,7 @@ export default function PlatformsDevices() {
                       <TableCell sx={{ color: '#E0E0E0' }}>{platform.PlatformType}</TableCell>
                       <TableCell sx={{ color: '#E0E0E0' }}>{platform.Subnet}</TableCell>
                     </TableRow>
+
                     <TableRow>
                       <TableCell colSpan={4} sx={{ p: 0, bgcolor: '#121212' }}>
                         <Collapse in={isExpanded} timeout="auto" unmountOnExit>
@@ -198,29 +228,18 @@ export default function PlatformsDevices() {
                               <Table size="small" aria-label="devices table" sx={{ bgcolor: '#222' }}>
                                 <TableHead>
                                   <TableRow>
-                                    <TableCell sx={{ color: '#90CAF9', fontWeight: 'bold' }}>
-                                      Device Type
-                                    </TableCell>
-                                    <TableCell sx={{ color: '#90CAF9', fontWeight: 'bold' }}>
-                                      IP Address
-                                    </TableCell>
+                                    <TableCell sx={{ color: '#90CAF9', fontWeight: 'bold' }}>Device Type</TableCell>
+                                    <TableCell sx={{ color: '#90CAF9', fontWeight: 'bold' }}>IP Address</TableCell>
                                     <TableCell sx={{ color: '#90CAF9', fontWeight: 'bold' }}>Status</TableCell>
-                                    <TableCell sx={{ color: '#90CAF9', fontWeight: 'bold' }}>
-                                      Timestamp
-                                    </TableCell>
+                                    <TableCell sx={{ color: '#90CAF9', fontWeight: 'bold' }}>Timestamp</TableCell>
                                   </TableRow>
                                 </TableHead>
                                 <TableBody>
-                                  {platform.Devices.map((device) => (
+                                  {platform.Devices.map(device => (
                                     <TableRow key={device.Id} hover>
                                       <TableCell sx={{ color: '#E0E0E0' }}>{device.DeviceType}</TableCell>
                                       <TableCell sx={{ color: '#ccc' }}>{device.IpAddress}</TableCell>
-                                      <TableCell
-                                        sx={{
-                                          color: device.Status ? '#4caf50' : '#f44336',
-                                          fontWeight: 'bold',
-                                        }}
-                                      >
+                                      <TableCell sx={{ color: device.Status ? '#4caf50' : '#f44336', fontWeight: 'bold' }}>
                                         {device.Status ? 'OK' : 'Err'}
                                       </TableCell>
                                       <TableCell sx={{ color: '#ccc' }}>

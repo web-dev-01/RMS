@@ -1,5 +1,4 @@
 'use client';
-
 import React, { useEffect, useState } from 'react';
 import {
   Card,
@@ -19,7 +18,6 @@ import RefreshIcon from '@mui/icons-material/Refresh';
 import DownloadIcon from '@mui/icons-material/Download';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import { useRouter } from 'next/navigation';
-
 import Template from '@/app/dashboard/Template';
 
 interface Area {
@@ -53,23 +51,24 @@ interface CapAlert {
 }
 
 export default function CapAlerts() {
-  const stationCode = 'NDLS'; // fixed station code
   const [alerts, setAlerts] = useState<CapAlert[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const router = useRouter();
 
+  // Fetch all alerts from all stations
   const fetchAlerts = async () => {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`/api/rms/cap-alerts?stationCode=${stationCode}`, {
+      // Fetch ALL alerts (no stationCode parameter)
+      const res = await fetch('/api/rms/cap-alerts', {
         headers: { 'x-api-key': process.env.NEXT_PUBLIC_API_KEY || '' },
       });
       const json = await res.json();
       if (json.success && Array.isArray(json.data)) {
-        setAlerts(json.data.slice(0, 30)); // show up to 30 alerts
+        setAlerts(json.data); // Show all alerts
       } else {
         setAlerts([]);
         setError(json.message || 'No CAP alerts found');
@@ -82,9 +81,10 @@ export default function CapAlerts() {
     }
   };
 
+  // Download all alerts as CSV
   const downloadAllAlerts = async () => {
     try {
-      const res = await fetch(`/api/rms/cap-alerts?stationCode=${stationCode}`, {
+      const res = await fetch('/api/rms/cap-alerts', {
         headers: { 'x-api-key': process.env.NEXT_PUBLIC_API_KEY || '' },
       });
       const json = await res.json();
@@ -135,7 +135,7 @@ export default function CapAlerts() {
         alert.info.urgency,
         alert.info.severity,
         alert.info.certainty,
-        `"${alert.info.headline.replace(/"/g, '""')}"`, // quote and escape quotes inside text
+        `"${alert.info.headline.replace(/"/g, '""')}"`,
         `"${alert.info.description.replace(/"/g, '""')}"`,
         alert.info.effective,
         alert.info.expires,
@@ -150,7 +150,7 @@ export default function CapAlerts() {
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', `CAP_Alerts_${stationCode}_${new Date().toISOString()}.csv`);
+      link.setAttribute('download', `CAP_Alerts_All_Stations_${new Date().toISOString()}.csv`);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -162,7 +162,7 @@ export default function CapAlerts() {
 
   useEffect(() => {
     fetchAlerts();
-  }, [stationCode]);
+  }, []);
 
   const getSeverityColor = (severity: string) => {
     switch (severity.toLowerCase()) {
@@ -217,7 +217,7 @@ export default function CapAlerts() {
           }}
         >
           <Typography variant="h4" fontWeight={700} color="#90CAF9">
-            CAP Alerts ({stationCode})
+            CAP Alerts - All Stations
           </Typography>
 
           <Box sx={{ display: 'flex', gap: 1 }}>
@@ -288,7 +288,7 @@ export default function CapAlerts() {
               color="textSecondary"
               sx={{ textAlign: 'center', mt: 4 }}
             >
-              No CAP alerts available for {stationCode}
+              No CAP alerts available
             </Typography>
           ) : (
             <Stack spacing={3}>
@@ -309,15 +309,26 @@ export default function CapAlerts() {
                 >
                   <CardHeader
                     title={
-                      <Tooltip title={alert.info.headline}>
-                        <Typography
-                          variant="h6"
-                          noWrap
-                          sx={{ fontWeight: '700', color: '#E0E0E0' }}
-                        >
-                          {alert.info.headline}
-                        </Typography>
-                      </Tooltip>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                        <Chip
+                          label={alert.stationCode}
+                          size="small"
+                          sx={{
+                            bgcolor: '#90CAF9',
+                            color: '#000',
+                            fontWeight: 'bold',
+                          }}
+                        />
+                        <Tooltip title={alert.info.headline}>
+                          <Typography
+                            variant="h6"
+                            noWrap
+                            sx={{ fontWeight: '700', color: '#E0E0E0', flex: 1 }}
+                          >
+                            {alert.info.headline}
+                          </Typography>
+                        </Tooltip>
+                      </Box>
                     }
                     subheader={
                       <Typography

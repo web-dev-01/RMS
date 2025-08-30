@@ -85,3 +85,4 @@ Add all Environment Variables in
 Project Settings → Environment Variables
 
 Deploy 🎉
+//ready

@@ -16,7 +16,7 @@ interface IStation {
 // Validate API key
 const validateApiKey = (req: NextRequest) => req.headers.get('x-api-key') === process.env.API_KEY;
 
-// --- GET: Retrieve CAP alerts by stationCode ---
+// --- GET: Retrieve CAP alerts (all or by stationCode) ---
 export async function GET(req: NextRequest) {
   try {
     if (!validateApiKey(req)) return NextResponse.json({ success: false, message: 'Invalid API key' }, { status: 401 });
@@ -25,12 +25,18 @@ export async function GET(req: NextRequest) {
     const url = new URL(req.url);
     const stationCode = url.searchParams.get('stationCode');
 
-    if (!stationCode) return NextResponse.json({ success: false, message: 'stationCode is required' }, { status: 400 });
-
-    const station = await Station.findOne({ StationCode: stationCode.toUpperCase() }).lean<IStation>();
-    if (!station) return NextResponse.json({ success: false, message: `Station not found for code: ${stationCode}` }, { status: 404 });
-
-    const capAlerts = await CapAlert.find({ stationCode: station.StationCode }).lean();
+    let capAlerts;
+    
+    if (stationCode) {
+      // Get alerts for specific station
+      const station = await Station.findOne({ StationCode: stationCode.toUpperCase() }).lean<IStation>();
+      if (!station) return NextResponse.json({ success: false, message: `Station not found for code: ${stationCode}` }, { status: 404 });
+      capAlerts = await CapAlert.find({ stationCode: station.StationCode }).lean();
+    } else {
+      // Get ALL alerts from all stations
+      capAlerts = await CapAlert.find({}).sort({ sent: -1 }).lean();
+    }
+    
     return NextResponse.json({ success: true, data: capAlerts }, { status: 200 });
   } catch (err: any) {
     console.error('GET /api/rms/cap-alerts error:', err.message, err.stack);
@@ -38,7 +44,7 @@ export async function GET(req: NextRequest) {
   }
 }
 
-// --- POST: Create new CAP alert(s) ---
+// --- POST: Create new CAP alert(s) - CLEAR ALL PREVIOUS FIRST ---
 export async function POST(req: NextRequest) {
   try {
     if (!validateApiKey(req)) return NextResponse.json({ success: false, message: 'Invalid API key' }, { status: 401 });
@@ -48,6 +54,11 @@ export async function POST(req: NextRequest) {
 
     const alertsArray = Array.isArray(body) ? body : [body];
     if (!alertsArray.length) return NextResponse.json({ success: false, message: 'Empty array not allowed' }, { status: 400 });
+
+    // CLEAR ALL PREVIOUS CAP ALERTS FIRST
+    console.log('Clearing all previous CAP alert records...');
+    await CapAlert.deleteMany({});
+    console.log('All previous CAP alerts deleted');
 
     const stationCodeCache: Record<string, string> = {};
     for (const alert of alertsArray) {
@@ -63,6 +74,7 @@ export async function POST(req: NextRequest) {
     }
 
     const insertedAlerts = await CapAlert.insertMany(alertsArray);
+    console.log(`Created ${insertedAlerts.length} new CAP alerts`);
     return NextResponse.json({ success: true, data: insertedAlerts }, { status: 201 });
   } catch (err: any) {
     console.error('POST /api/rms/cap-alerts error:', err.message, err.stack);

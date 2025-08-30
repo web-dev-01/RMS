@@ -7,7 +7,7 @@ import { UserProvider } from '@/contexts/UserContext';
 const inter = Inter({ subsets: ['latin'], display: 'swap' });
 
 export const metadata = {
-  title: 'YourCompany SaaS Landing',
+  title: 'IPIS-RMS',
   description: 'Clean SaaS marketing site',
 };
 
